@@ -21,6 +21,7 @@ export default function BriefPage({
     configured,
     drafts,
     setDraftRequirements,
+    setDraftProposalTerms,
     setNavDirection,
   } = useDealPilot();
 
@@ -39,9 +40,27 @@ export default function BriefPage({
 
   const handleSave = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!text.trim()) return;
     try {
       await runAction('Saving brief…', async () => {
-        await mutateDeal('/requirements', { text });
+        const updated = await mutateDeal('/requirements', { text: text.trim() });
+        if (updated?.extraction) {
+          const ext = updated.extraction;
+          let days = 7;
+          if (ext.deadline) {
+            const m = ext.deadline.match(/(\d+)/);
+            if (m) days = Math.max(1, Math.min(365, parseInt(m[1], 10)));
+          }
+          setDraftProposalTerms(dealId, {
+            deliverables: ext.deliverables.length > 0 ? ext.deliverables : ['Project delivery'],
+            exclusions: ['Hosting and domain fees'],
+            amount_cents: ext.budget_usd ? Math.round(ext.budget_usd * 100) : (deal?.asking_cents || 30000),
+            currency: 'USD',
+            delivery_days: days,
+            revisions: 2,
+            payment_terms: 'Full payment upfront; work starts after payment.',
+          });
+        }
         setNavDirection('forward');
         router.push(`/deals/${dealId}/proposal`);
       });
@@ -51,9 +70,27 @@ export default function BriefPage({
   };
 
   const handleExtract = async () => {
+    if (!text.trim()) return;
     try {
       await runAction('Extracting proposal terms with AI…', async () => {
-        await mutateDeal('/extract');
+        const updated = await mutateDeal('/extract', { text: text.trim() });
+        if (updated?.extraction) {
+          const ext = updated.extraction;
+          let days = 7;
+          if (ext.deadline) {
+            const m = ext.deadline.match(/(\d+)/);
+            if (m) days = Math.max(1, Math.min(365, parseInt(m[1], 10)));
+          }
+          setDraftProposalTerms(dealId, {
+            deliverables: ext.deliverables.length > 0 ? ext.deliverables : ['Project delivery'],
+            exclusions: ['Hosting and domain fees'],
+            amount_cents: ext.budget_usd ? Math.round(ext.budget_usd * 100) : (deal?.asking_cents || 30000),
+            currency: 'USD',
+            delivery_days: days,
+            revisions: 2,
+            payment_terms: 'Full payment upfront; work starts after payment.',
+          });
+        }
       });
     } catch {
       // Handled in context
@@ -143,17 +180,14 @@ export default function BriefPage({
               disabled={
                 Boolean(actionLoading) ||
                 !text.trim() ||
-                isLocked ||
-                !configured.ai_configured
+                isLocked
               }
               onClick={() => void handleExtract()}
             >
               ✧ Extract with AI
             </button>
             <small>
-              {configured.ai_configured
-                ? 'AI extraction suggests structured deliverables for review.'
-                : 'AI key not configured. Manual proposals are fully supported.'}
+              AI extraction parses deliverables, budget, and deadline directly from your brief.
             </small>
           </div>
 
@@ -185,6 +219,20 @@ export default function BriefPage({
                   <li key={i}>{x}</li>
                 ))}
               </ul>
+              <div style={{ marginTop: '14px' }}>
+                <button
+                  type="button"
+                  className="primary"
+                  onClick={() => {
+                    setNavDirection('forward');
+                    router.push(`/deals/${dealId}/proposal`);
+                  }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, padding: '8px 14px' }}
+                >
+                  <span>Use AI terms in Proposal</span>
+                  <span>→</span>
+                </button>
+              </div>
             </div>
           )}
 

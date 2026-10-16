@@ -1,8 +1,10 @@
 'use client';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useDealPilot, money } from '../context/DealPilotContext';
 
 export function NextActionPanel() {
+  const pathname = usePathname();
   const { deal, offer, role, setShowCert, setNavDirection } = useDealPilot();
 
   if (!deal) return null;
@@ -102,16 +104,29 @@ export function NextActionPanel() {
         <span>→</span>
       </Link>
     );
-  } else {
-    stateClass = 'pending';
-    badge = 'Brief needed';
-    title = 'Next step: Define project brief';
-    desc = 'Describe what you are building to establish deliverables, timeline, and expectations.';
-    actionNode = (
+    const isOnBriefPage = pathname === `/deals/${deal.id}/brief`;
+    actionNode = isOnBriefPage ? (
+      <button
+        type="button"
+        className="primary continue-btn"
+        onClick={() => {
+          const form = document.querySelector('form');
+          if (form) {
+            form.requestSubmit();
+          } else {
+            const input = document.getElementById('requirements-input');
+            input?.focus();
+          }
+        }}
+      >
+        <span>Save brief</span>
+        <span>→</span>
+      </button>
+    ) : (
       <Link
         href={`/deals/${deal.id}/brief`}
         className="primary continue-btn"
-        onClick={() => setNavDirection('none')}
+        onClick={() => setNavDirection('forward')}
       >
         <span>Enter brief</span>
         <span>→</span>

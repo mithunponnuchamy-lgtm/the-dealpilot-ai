@@ -97,7 +97,7 @@ def rotate_invitation(deal_id:str,token=AUTH,db:Session=DB):
 def requirements(deal_id:str,body:Message,token=AUTH,db:Session=DB):
     d,role=access(db,deal_id,token,True); editable(d)
     if d.current_version: raise HTTPException(409,'Requirements are fixed after the first proposal. Request changes in the discussion and create a revised proposal.')
-    d.requirements=body.text; d.extraction=None; event(db,d.id,role,'Requirements saved.'); db.commit()
+    d.requirements=body.text; event(db,d.id,role,'Requirements saved.'); db.commit()
     return view(db,d,role)
 def ai_budget(db, d, role):
     since = (datetime.now(timezone.utc)-timedelta(hours=1)).isoformat()
@@ -107,9 +107,13 @@ def ai_budget(db, d, role):
     db.commit()
 
 @router.post('/deals/{deal_id}/extract')
-def extract(deal_id:str,token=AUTH,db:Session=DB):
+def extract(deal_id:str,body:dict|None=None,token=AUTH,db:Session=DB):
     d,role=access(db,deal_id,token,True); editable(d)
-    if not d.requirements: raise HTTPException(422,'Save requirements first.')
+    req_text = (body.get('text') if isinstance(body, dict) else None) or d.requirements
+    if req_text and req_text.strip():
+        d.requirements = req_text.strip()
+        db.commit()
+    if not d.requirements: raise HTTPException(422,'Please enter project brief requirements first.')
     ai_budget(db,d,role)
     d,role=access(db,deal_id,token,True); editable(d)
     d.extraction=ai.extract(d.requirements); event(db,d.id,role,'AI extracted draft requirements for review.'); db.commit()

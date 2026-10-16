@@ -72,8 +72,8 @@ interface DealPilotContextType {
   api: (path: string, method?: string, body?: unknown, t?: string) => Promise<any>;
   refreshDeals: (t?: string) => Promise<Deal[]>;
   loadDeal: (id: string) => Promise<Deal | undefined>;
-  runAction: (label: string, action: () => Promise<void>) => Promise<void>;
-  mutateDeal: (path: string, body?: unknown) => Promise<void>;
+  runAction: <T = unknown>(label: string, action: () => Promise<T>) => Promise<T>;
+  mutateDeal: (path: string, body?: unknown) => Promise<any>;
   login: (t: string, targetDealId?: string) => Promise<{ role: string; dealId: string }>;
   logout: () => void;
   createDeal: (data: {
@@ -369,11 +369,11 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
   );
 
   const runAction = useCallback(
-    async (label: string, action: () => Promise<void>) => {
+    async <T,>(label: string, action: () => Promise<T>): Promise<T> => {
       setActionLoading(label);
       setError('');
       try {
-        await action();
+        return await action();
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Request failed.');
         void refreshDeals();
@@ -387,9 +387,10 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
 
   const mutateDeal = useCallback(
     async (path: string, body?: unknown) => {
-      if (!activeDealId) return;
-      await api('/deals/' + activeDealId + path, 'POST', body);
+      if (!activeDealId) return undefined;
+      const res = await api('/deals/' + activeDealId + path, 'POST', body);
       await refreshDeals();
+      return res;
     },
     [activeDealId, api, refreshDeals]
   );

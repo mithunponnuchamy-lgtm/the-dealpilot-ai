@@ -22,15 +22,32 @@ export default function ProposalPage({
     setNavDirection,
   } = useDealPilot();
 
-  // Active form terms from draft, latest offer, or defaults
+  // Active form terms from draft, latest offer, AI extraction, or defaults
   const [terms, setTerms] = useState<Terms>(() => {
-    return (
-      drafts[dealId]?.proposalTerms ||
-      offer?.terms || {
-        ...initialTerms,
-        amount_cents: deal?.asking_cents || 30000,
+    if (drafts[dealId]?.proposalTerms) return drafts[dealId].proposalTerms!;
+    if (offer?.terms) return offer.terms;
+    if (deal?.extraction) {
+      const ext = deal.extraction;
+      let days = 7;
+      if (ext.deadline) {
+        const m = ext.deadline.match(/(\d+)/);
+        if (m) days = Math.max(1, Math.min(365, parseInt(m[1], 10)));
       }
-    );
+      return {
+        ...initialTerms,
+        deliverables: ext.deliverables.length > 0 ? ext.deliverables : initialTerms.deliverables,
+        exclusions: ['Hosting and domain fees'],
+        amount_cents: ext.budget_usd ? Math.round(ext.budget_usd * 100) : (deal?.asking_cents || 30000),
+        currency: 'USD',
+        delivery_days: days,
+        revisions: 2,
+        payment_terms: initialTerms.payment_terms,
+      };
+    }
+    return {
+      ...initialTerms,
+      amount_cents: deal?.asking_cents || 30000,
+    };
   });
 
   useEffect(() => {
@@ -38,10 +55,27 @@ export default function ProposalPage({
       setTerms(drafts[dealId].proposalTerms!);
     } else if (offer?.terms) {
       setTerms(offer.terms);
+    } else if (!offer && deal?.extraction) {
+      const ext = deal.extraction;
+      let days = 7;
+      if (ext.deadline) {
+        const m = ext.deadline.match(/(\d+)/);
+        if (m) days = Math.max(1, Math.min(365, parseInt(m[1], 10)));
+      }
+      setTerms({
+        ...initialTerms,
+        deliverables: ext.deliverables.length > 0 ? ext.deliverables : initialTerms.deliverables,
+        exclusions: ['Hosting and domain fees'],
+        amount_cents: ext.budget_usd ? Math.round(ext.budget_usd * 100) : (deal?.asking_cents || 30000),
+        currency: 'USD',
+        delivery_days: days,
+        revisions: 2,
+        payment_terms: initialTerms.payment_terms,
+      });
     } else if (deal?.asking_cents) {
       setTerms(prev => ({ ...prev, amount_cents: deal.asking_cents }));
     }
-  }, [dealId, drafts, offer, deal?.asking_cents]);
+  }, [dealId, drafts, offer, deal?.asking_cents, deal?.extraction]);
 
   if (!deal) return null;
 
