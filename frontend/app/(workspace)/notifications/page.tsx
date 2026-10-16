@@ -1,6 +1,5 @@
 'use client';
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDealPilot } from '@/context/DealPilotContext';
 import { NotificationItem, NotificationType } from '@/types';
@@ -14,6 +13,12 @@ import {
 
 export default function NotificationsPage() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const {
     notifications,
     unreadNotificationsCount,
@@ -74,6 +79,15 @@ export default function NotificationsPage() {
       return '';
     }
   };
+
+  if (!mounted) {
+    return (
+      <div className="notifications-page" style={{ maxWidth: 920, margin: '0 auto', padding: '24px 16px' }}>
+        <div style={{ height: 80, background: '#f8fafc', borderRadius: 12, marginBottom: 20 }} />
+        <div style={{ height: 320, background: '#f8fafc', borderRadius: 12 }} />
+      </div>
+    );
+  }
 
   return (
     <div className="notifications-page page-transition-fade" style={{ maxWidth: 920, margin: '0 auto', padding: '24px 16px' }}>

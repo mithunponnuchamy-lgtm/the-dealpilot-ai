@@ -28,6 +28,11 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
 
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // If session is lost and token is empty, redirect to home
   useEffect(() => {
@@ -97,9 +102,9 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
         >
           <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <BellIcon unread={unreadNotificationsCount > 0} /> Notifications
+            <BellIcon unread={mounted && unreadNotificationsCount > 0} /> Notifications
           </span>
-          {unreadNotificationsCount > 0 && (
+          {mounted && unreadNotificationsCount > 0 && (
             <span
               style={{
                 background: '#EF4444',
@@ -188,9 +193,9 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
                 color: unreadNotificationsCount > 0 ? 'var(--blue-primary)' : '#475569',
               }}
             >
-              <BellIcon unread={unreadNotificationsCount > 0} />
+              <BellIcon unread={mounted && unreadNotificationsCount > 0} />
               <span style={{ fontSize: 13, fontWeight: 600 }}>Activity</span>
-              {unreadNotificationsCount > 0 && (
+              {mounted && unreadNotificationsCount > 0 && (
                 <span
                   style={{
                     background: '#EF4444',
@@ -241,11 +246,13 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
         />
       )}
 
-      <NotificationToaster />
-      <NotificationPanel
-        isOpen={showNotifications}
-        onClose={() => setShowNotifications(false)}
-      />
+      {mounted && <NotificationToaster />}
+      {mounted && (
+        <NotificationPanel
+          isOpen={showNotifications}
+          onClose={() => setShowNotifications(false)}
+        />
+      )}
     </div>
   );
 }
