@@ -111,8 +111,6 @@ interface DealPilotContextType {
   dismissToast: (id: string) => void;
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: () => void;
-  triggerNotification: (item: Omit<NotificationItem, 'id' | 'createdAt' | 'read'>) => void;
-  triggerTestNotification: () => void;
 }
 
 const DealPilotContext = createContext<DealPilotContextType | null>(null);
@@ -149,7 +147,6 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
   // Real-time notifications and toasts
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [toasts, setToasts] = useState<NotificationItem[]>([]);
-  const prevDealsRef = useRef<Record<string, Deal>>({});
   const initializedRef = useRef<boolean>(false);
 
   const unreadNotificationsCount = notifications.filter(n => !n.read).length;
@@ -175,39 +172,6 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
   const markAllNotificationsRead = useCallback(() => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   }, []);
-
-  const triggerNotification = useCallback(
-    (item: Omit<NotificationItem, 'id' | 'createdAt' | 'read'>) => {
-      const full: NotificationItem = {
-        ...item,
-        id: 'notif-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
-        createdAt: new Date().toISOString(),
-        read: false,
-      };
-      setNotifications(prev => [full, ...prev]);
-      popToast(full);
-    },
-    [popToast]
-  );
-
-  const triggerTestNotification = useCallback(() => {
-    const sampleDeal = deals.find(d => d.id === activeDealId) || deals[0] || {
-      id: 'demo-deal',
-      title: 'E-Commerce Website Redesign',
-      client: 'Acme Corp',
-      freelancer: 'Mithun',
-      asking_cents: 35000,
-    };
-    triggerNotification({
-      dealId: sampleDeal.id,
-      dealTitle: sampleDeal.title,
-      type: 'approval',
-      title: 'Proposal Approved!',
-      message: `${sampleDeal.client} approved the latest proposal terms. Payment can now be made!`,
-      role: 'client',
-      actionUrl: `/deals/${sampleDeal.id}/review`,
-    });
-  }, [activeDealId, deals, triggerNotification]);
 
   const deal = deals.find(x => x.id === activeDealId);
   const offer = deal?.offers.at(-1);
@@ -242,136 +206,142 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
       const list: Deal[] = await api('/deals', 'GET', undefined, t);
       setDeals(list);
 
-      const isFirst = !initializedRef.current;
-      const prevMap = prevDealsRef.current;
-      const newItems: NotificationItem[] = [];
+      // Load persistent record of seen notification keys
+      let seenKeys = new Set<string>();
+      try {
+        const raw = typeof window !== 'undefined' ? localStorage.getItem('dealpilot-seen-notifs') : null;
+        if (raw) seenKeys = new Set(JSON.parse(raw));
+      } catch {}
+
+      const realNotifications: NotificationItem[] = [];
+      const toPop: NotificationItem[] = [];
 
       list.forEach(dealItem => {
-        const prev = prevMap[dealItem.id];
         const currentOffer = dealItem.offers.at(-1);
-        const prevOffer = prev?.offers.at(-1);
 
-        if (!isFirst && prev) {
-          // 1. Check for approvals
-          if (currentOffer && prevOffer) {
-            const newApprovals = currentOffer.approvals.filter(a => !prevOffer.approvals.includes(a));
-            newApprovals.forEach(approver => {
-              const actorName = approver === 'client' ? dealItem.client : dealItem.freelancer;
-              newItems.push({
-                id: `appr-${dealItem.id}-${currentOffer.version}-${approver}-${Date.now()}`,
+        if (role === 'client') {
+          // ==========================================
+          // CLIENT SIDE: "Waiting for your approval for this project"
+          // ==========================================
+          if (
+            currentOffer &&
+            !currentOffer.approvals.includes('client') &&
+            !currentOffer.rejected &&
+            !dealItem.frozen &&
+            !dealItem.cancelled
+          ) {
+            const notifId = `client-wait-${dealItem.id}-v${currentOffer.version}`;
+            const item: NotificationItem = {
+              id: notifId,
+              dealId: dealItem.id,
+              dealTitle: dealItem.title,
+              type: 'approval',
+              title: 'Waiting for your approval for this project',
+              message: `Proposal v${currentOffer.version} for "${dealItem.title}" is waiting for your review and approval.`,
+              role: 'freelancer',
+              createdAt: currentOffer.created_at || dealItem.created_at || new Date().toISOString(),
+              read: seenKeys.has(notifId),
+              actionUrl: `/deals/${dealItem.id}/review`,
+            };
+            realNotifications.push(item);
+            if (!seenKeys.has(notifId)) {
+              seenKeys.add(notifId);
+              toPop.push(item);
+            }
+          }
+        } else if (role === 'freelancer') {
+          // ==========================================
+          // FREELANCER SIDE:
+          // 1. "Accepted the proposal"
+          // 2. "Rejected the proposal"
+          // 3. "Paid for the project"
+          // ==========================================
+          dealItem.offers.forEach(o => {
+            // 1. Client accepted the proposal
+            if (o.approvals.includes('client')) {
+              const notifId = `fl-accepted-${dealItem.id}-v${o.version}`;
+              const item: NotificationItem = {
+                id: notifId,
                 dealId: dealItem.id,
                 dealTitle: dealItem.title,
                 type: 'approval',
-                title: approver === role ? 'Proposal Approved' : `${actorName} approved proposal!`,
-                message: `Version ${currentOffer.version} of "${dealItem.title}" was approved by ${actorName}.`,
-                role: approver,
-                createdAt: new Date().toISOString(),
-                read: false,
+                title: 'Accepted the proposal',
+                message: `${dealItem.client} accepted the proposal for "${dealItem.title}".`,
+                role: 'client',
+                createdAt: o.created_at || dealItem.created_at || new Date().toISOString(),
+                read: seenKeys.has(notifId),
                 actionUrl: `/deals/${dealItem.id}/review`,
-              });
-            });
-          }
+              };
+              realNotifications.push(item);
+              if (!seenKeys.has(notifId)) {
+                seenKeys.add(notifId);
+                toPop.push(item);
+              }
+            }
 
-          // 2. Check for rejection
-          if (currentOffer && currentOffer.rejected && prevOffer && !prevOffer.rejected) {
-            newItems.push({
-              id: `rej-${dealItem.id}-${currentOffer.version}-${Date.now()}`,
-              dealId: dealItem.id,
-              dealTitle: dealItem.title,
-              type: 'rejection',
-              title: 'Proposal Rejected',
-              message: `Version ${currentOffer.version} of "${dealItem.title}" was rejected. A counter-offer can be made.`,
-              role: role === 'client' ? 'freelancer' : 'client',
-              createdAt: new Date().toISOString(),
-              read: false,
-              actionUrl: `/deals/${dealItem.id}/negotiation`,
-            });
-          }
+            // 2. Client rejected the proposal
+            if (o.rejected) {
+              const notifId = `fl-rejected-${dealItem.id}-v${o.version}`;
+              const item: NotificationItem = {
+                id: notifId,
+                dealId: dealItem.id,
+                dealTitle: dealItem.title,
+                type: 'rejection',
+                title: 'Rejected the proposal',
+                message: `${dealItem.client} rejected the proposal for "${dealItem.title}".`,
+                role: 'client',
+                createdAt: o.created_at || dealItem.created_at || new Date().toISOString(),
+                read: seenKeys.has(notifId),
+                actionUrl: `/deals/${dealItem.id}/negotiation`,
+              };
+              realNotifications.push(item);
+              if (!seenKeys.has(notifId)) {
+                seenKeys.add(notifId);
+                toPop.push(item);
+              }
+            }
+          });
 
-          // 3. Check for new version / counter-offer
-          if (currentOffer && (!prevOffer || currentOffer.version > prevOffer.version)) {
-            const author = currentOffer.author;
-            const actorName = author === 'client' ? dealItem.client : dealItem.freelancer;
-            newItems.push({
-              id: `prop-${dealItem.id}-${currentOffer.version}-${Date.now()}`,
-              dealId: dealItem.id,
-              dealTitle: dealItem.title,
-              type: 'negotiation',
-              title: 'New Proposal Terms',
-              message: `${actorName} submitted Proposal v${currentOffer.version}. Both parties must review & approve.`,
-              role: author,
-              createdAt: new Date().toISOString(),
-              read: false,
-              actionUrl: `/deals/${dealItem.id}/review`,
-            });
-          }
-
-          // 4. Check for payment captured
-          if (dealItem.payment?.status === 'paid' && prev.payment?.status !== 'paid') {
-            newItems.push({
-              id: `pay-${dealItem.id}-${Date.now()}`,
+          // 3. Client paid for the project
+          if (dealItem.payment?.status === 'paid') {
+            const notifId = `fl-paid-${dealItem.id}`;
+            const item: NotificationItem = {
+              id: notifId,
               dealId: dealItem.id,
               dealTitle: dealItem.title,
               type: 'payment',
-              title: 'PayPal Payment Verified!',
-              message: `Payment of ${money(currentOffer?.terms.amount_cents || dealItem.asking_cents)} confirmed via PayPal Sandbox!`,
-              role: 'system',
-              createdAt: new Date().toISOString(),
-              read: false,
+              title: 'Paid for the project',
+              message: `${dealItem.client} paid for the project "${dealItem.title}".`,
+              role: 'client',
+              createdAt: dealItem.payment.paid_at || dealItem.created_at || new Date().toISOString(),
+              read: seenKeys.has(notifId),
               actionUrl: `/deals/${dealItem.id}/payment`,
-            });
+            };
+            realNotifications.push(item);
+            if (!seenKeys.has(notifId)) {
+              seenKeys.add(notifId);
+              toPop.push(item);
+            }
           }
         }
-
-        prevMap[dealItem.id] = dealItem;
       });
 
-      if (isFirst) {
-        // Initial load: parse historical events from deals
-        const historical: NotificationItem[] = [];
-        list.forEach(dealItem => {
-          (dealItem.events || []).forEach(e => {
-            let type: NotificationType = 'system';
-            let title = 'Deal Event';
-            if (e.message.includes('approved version')) {
-              type = 'approval';
-              title = `${e.role === 'client' ? dealItem.client : dealItem.freelancer} approved proposal`;
-            } else if (e.message.includes('Rejected version')) {
-              type = 'rejection';
-              title = `Proposal Rejected`;
-            } else if (e.message.includes('capture verified')) {
-              type = 'payment';
-              title = 'PayPal Payment Verified';
-            } else if (e.message.includes('Proposed version')) {
-              type = 'negotiation';
-              title = `New proposal terms by ${e.role}`;
-            } else {
-              type = 'message';
-              title = `Activity on ${dealItem.title}`;
-            }
+      // Sort real notifications descending by time
+      realNotifications.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setNotifications(realNotifications);
 
-            historical.push({
-              id: e.id || `hist-${dealItem.id}-${e.created_at}`,
-              dealId: dealItem.id,
-              dealTitle: dealItem.title,
-              type,
-              title,
-              message: e.message,
-              role: e.role,
-              createdAt: e.created_at,
-              read: true,
-              actionUrl: getResumeRoute(dealItem, dealItem.role || 'freelancer'),
-            });
-          });
-        });
+      // Save seen keys in localStorage
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('dealpilot-seen-notifs', JSON.stringify(Array.from(seenKeys)));
+        }
+      } catch {}
 
-        historical.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        setNotifications(historical);
-        initializedRef.current = true;
-      } else if (newItems.length > 0) {
-        newItems.forEach(item => popToast(item));
-        setNotifications(prev => [...newItems, ...prev]);
+      // Pop real toasts only on live state changes (after first initialization)
+      if (initializedRef.current && toPop.length > 0) {
+        toPop.forEach(notif => popToast(notif));
       }
+      initializedRef.current = true;
 
       return list;
     },
@@ -606,8 +576,6 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
         dismissToast,
         markNotificationRead,
         markAllNotificationsRead,
-        triggerNotification,
-        triggerTestNotification,
       }}
     >
       {children}

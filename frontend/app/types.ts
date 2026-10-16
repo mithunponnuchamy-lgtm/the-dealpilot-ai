@@ -16,6 +16,7 @@ export type Offer = {
   rejected: boolean;
   approvals: string[];
   changes: Record<string, { before: unknown; after: unknown }>;
+  created_at?: string;
 };
 
 export type Deal = {
@@ -30,6 +31,7 @@ export type Deal = {
   frozen: boolean;
   cancelled: boolean;
   requirements: string;
+  created_at?: string;
   extraction: {
     description: string;
     deliverables: string[];

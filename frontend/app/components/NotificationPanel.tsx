@@ -28,7 +28,6 @@ export function NotificationPanel({
     markNotificationRead,
     markAllNotificationsRead,
     setActiveDealId,
-    triggerTestNotification,
   } = useDealPilot();
 
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
@@ -229,24 +228,6 @@ export function NotificationPanel({
               Unread ({unreadNotificationsCount})
             </button>
           </div>
-
-          <button
-            type="button"
-            onClick={triggerTestNotification}
-            title="Test real-time popping notification sound and alert"
-            style={{
-              background: 'none',
-              border: '1px dashed #94a3b8',
-              borderRadius: 6,
-              padding: '3px 8px',
-              fontSize: 11,
-              fontWeight: 600,
-              color: '#475569',
-              cursor: 'pointer',
-            }}
-          >
-            ⚡ Test Pop
-          </button>
         </div>
 
         {/* Notifications List */}

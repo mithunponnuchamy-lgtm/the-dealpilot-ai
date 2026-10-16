@@ -25,7 +25,6 @@ export default function NotificationsPage() {
     markNotificationRead,
     markAllNotificationsRead,
     setActiveDealId,
-    triggerTestNotification,
   } = useDealPilot();
 
   const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'approvals' | 'payments' | 'proposals'>('all');
@@ -104,14 +103,6 @@ export default function NotificationsPage() {
         </div>
 
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <button
-            type="button"
-            onClick={triggerTestNotification}
-            className="secondary"
-            style={{ fontSize: 13, padding: '8px 14px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-          >
-            <span>⚡ Test Pop Notification</span>
-          </button>
           {unreadNotificationsCount > 0 && (
             <button
               type="button"
