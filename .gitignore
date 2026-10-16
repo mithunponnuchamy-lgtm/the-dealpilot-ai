@@ -1,0 +1,14 @@
+.env
+.env.local
+.env.*.local
+*.db
+*.db-*
+__pycache__/
+.pytest_cache/
+.venv/
+node_modules/
+.next/
+*.tsbuildinfo
+test-results/
+playwright-report/
+app.backup-before-routing/

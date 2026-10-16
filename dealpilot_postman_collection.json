@@ -1,0 +1,249 @@
+{
+  "info": {
+    "name": "DealPilot AI - PayPal & Gemini API Collection",
+    "description": "Complete Postman collection for DealPilot AI: Freelance Agreement Lifecycle, Google Gemini AI Extraction & Negotiation Risk Review, and PayPal Sandbox Checkout.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "l23kTxGL6jBc21F0AMTvB2A6VYJfzco0VcqBqsZxTlbz2qGi",
+      "type": "string"
+    },
+    {
+      "key": "dealId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. System Health & Session",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health"
+          }
+        },
+        {
+          "name": "Session & Config Status",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/session",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Deal Management",
+      "item": [
+        {
+          "name": "List Deals",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/deals",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Create Deal",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/deals",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"E-Commerce Website Development\",\n  \"client\": \"Jordan Taylor\",\n  \"freelancer\": \"Alex Morgan\",\n  \"asking_cents\": 50000,\n  \"minimum_cents\": 35000\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Single Deal",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/deals/{{dealId}}",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. AI Requirements & Negotiation Intelligence",
+      "item": [
+        {
+          "name": "Save Requirements Brief",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/deals/{{dealId}}/requirements",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"text\": \"Build a responsive 5-page e-commerce website with PayPal checkout, 14 days delivery, 2 revisions.\"}"
+            }
+          }
+        },
+        {
+          "name": "Extract Deliverables with Gemini AI",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/deals/{{dealId}}/extract",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Analyze Deal Risks & Trade-offs (Gemini)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/deals/{{dealId}}/suggest",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Proposals & Approvals",
+      "item": [
+        {
+          "name": "Submit Versioned Proposal",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/deals/{{dealId}}/offers",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expected_version\": 0,\n  \"terms\": {\n    \"deliverables\": [\n      \"Homepage\",\n      \"Catalog\",\n      \"Product Detail\",\n      \"Checkout with PayPal\"\n    ],\n    \"exclusions\": [\n      \"Ongoing hosting fees\"\n    ],\n    \"amount_cents\": 50000,\n    \"currency\": \"USD\",\n    \"delivery_days\": 14,\n    \"revisions\": 2,\n    \"payment_terms\": \"Full payment upfront; work starts after payment.\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Approve Exact Proposal Terms",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/deals/{{dealId}}/approve",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"version\": 1}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. PayPal Sandbox Checkout & Verification",
+      "item": [
+        {
+          "name": "Create PayPal Order",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/deals/{{dealId}}/checkout",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"version\": 1}"
+            }
+          }
+        },
+        {
+          "name": "Simulate Verified Sandbox Payment",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/deals/{{dealId}}/simulate-payment",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"version\": 1}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
