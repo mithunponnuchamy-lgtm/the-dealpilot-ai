@@ -3,8 +3,10 @@ import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useDealPilot, getResumeRoute } from '@/context/DealPilotContext';
-import { SearchIcon } from '@/components/Icons';
+import { SearchIcon, BellIcon } from '@/components/Icons';
 import { AgreementCertificateModal } from '@/components/AgreementCertificateModal';
+import { NotificationToaster } from '@/components/NotificationToaster';
+import { NotificationPanel } from '@/components/NotificationPanel';
 
 export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -21,9 +23,11 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
     setShowCert,
     setActiveDealId,
     setNavDirection,
+    unreadNotificationsCount,
   } = useDealPilot();
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [showNotifications, setShowNotifications] = useState(false);
 
   // If session is lost and token is empty, redirect to home
   useEffect(() => {
@@ -83,6 +87,34 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
           ▦ Overview
         </Link>
 
+        <Link
+          href="/notifications"
+          className={`nav ${pathname === '/notifications' ? 'active' : ''}`}
+          onClick={() => {
+            setActiveDealId('');
+            setNavDirection('none');
+          }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+        >
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <BellIcon unread={unreadNotificationsCount > 0} /> Notifications
+          </span>
+          {unreadNotificationsCount > 0 && (
+            <span
+              style={{
+                background: '#EF4444',
+                color: '#FFFFFF',
+                fontSize: 11,
+                fontWeight: 700,
+                padding: '1px 6px',
+                borderRadius: 99,
+              }}
+            >
+              {unreadNotificationsCount}
+            </span>
+          )}
+        </Link>
+
         <div className="space-label">YOUR DEALS · {filteredDeals.length}</div>
         <nav>
           {filteredDeals.map(d => {
@@ -139,9 +171,45 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
             <span>/</span>
             <b>{breadcrumbSection}</b>
           </div>
-          <div className="badge sandbox-badge">
-            <span className="badge-dot" aria-hidden="true" />
-            <span>Sandbox demo</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button
+              type="button"
+              onClick={() => setShowNotifications(!showNotifications)}
+              aria-label={`Notifications (${unreadNotificationsCount} unread)`}
+              style={{
+                background: showNotifications ? '#F1F5F9' : 'transparent',
+                border: '1px solid #E2E8F0',
+                borderRadius: 8,
+                padding: '6px 12px',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                color: unreadNotificationsCount > 0 ? 'var(--blue-primary)' : '#475569',
+              }}
+            >
+              <BellIcon unread={unreadNotificationsCount > 0} />
+              <span style={{ fontSize: 13, fontWeight: 600 }}>Activity</span>
+              {unreadNotificationsCount > 0 && (
+                <span
+                  style={{
+                    background: '#EF4444',
+                    color: '#FFFFFF',
+                    fontSize: 10,
+                    fontWeight: 700,
+                    padding: '1px 5px',
+                    borderRadius: 99,
+                  }}
+                >
+                  {unreadNotificationsCount}
+                </span>
+              )}
+            </button>
+
+            <div className="badge sandbox-badge">
+              <span className="badge-dot" aria-hidden="true" />
+              <span>Sandbox demo</span>
+            </div>
           </div>
         </header>
 
@@ -172,6 +240,12 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
           onClose={() => setShowCert(false)}
         />
       )}
+
+      <NotificationToaster />
+      <NotificationPanel
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
+      />
     </div>
   );
 }

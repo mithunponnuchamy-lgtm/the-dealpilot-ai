@@ -47,7 +47,22 @@ export type Deal = {
     paid_at: string | null;
     approval_url?: string | null;
   } | null;
-  events: { role: string; message: string; created_at: string }[];
+  events: { id?: string; role: string; message: string; created_at: string }[];
+};
+
+export type NotificationType = 'approval' | 'rejection' | 'negotiation' | 'payment' | 'message' | 'system';
+
+export type NotificationItem = {
+  id: string;
+  dealId: string;
+  dealTitle: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  role: string;
+  createdAt: string;
+  read: boolean;
+  actionUrl: string;
 };
 
 export type RiskItem = {

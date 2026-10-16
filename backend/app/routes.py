@@ -47,7 +47,7 @@ def view(db,d,role):
     result = {'id':d.id,'title':d.title,'client':d.client,'freelancer':d.freelancer,'asking_cents':d.asking_cents,'role':role,'status':state,'frozen':d.frozen,'cancelled':d.cancelled,'requirements':d.requirements,'extraction':d.extraction,'created_at':d.created_at,
         'offers':[{'id':x.id,'version':x.version,'terms':x.terms,'author':x.author,'rejected':x.rejected,'approvals':sorted(approved(db,x)),'created_at':x.created_at,'changes':compare(offers[i-1].terms,x.terms) if i else {}} for i,x in enumerate(offers)],
         'payment': {'status':p.status,'order_id':p.order_id,'capture_id':p.capture_id,'offer_id':p.offer_id,'paid_at':p.paid_at,'approval_url':p.approval_url} if p else None,
-        'events':[{'role':e.role,'message':e.message,'created_at':e.created_at} for e in db.scalars(select(Event).where(Event.deal_id==d.id).order_by(Event.created_at))]}
+        'events':[{'id':e.id,'role':e.role,'message':e.message,'created_at':e.created_at} for e in db.scalars(select(Event).where(Event.deal_id==d.id).order_by(Event.created_at))]}
     if role=='freelancer': result['minimum_cents']=d.minimum_cents
     return result
 
