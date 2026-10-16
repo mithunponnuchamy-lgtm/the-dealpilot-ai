@@ -5,7 +5,13 @@ from .database import engine
 from .config import FRONTEND_URL
 app = FastAPI(title='DealPilot AI', version='0.1.0')
 origins = list(set([FRONTEND_URL, 'http://localhost:3000', 'http://127.0.0.1:3000']))
-app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=['GET','POST'], allow_headers=['Authorization','Content-Type'])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=False,
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
 @app.get('/health')
 def health():
     with engine.connect() as conn:

@@ -17,7 +17,7 @@ services:
           name: dealpilot-frontend
           property: host
       - key: WORKSPACE_TOKEN
-        generateValue: true
+        value: l23kTxGL6jBc21F0AMTvB2A6VYJfzco0VcqBqsZxTlbz2qGi
       - key: GEMINI_API_KEY
         sync: false
       - key: GEMINI_MODEL
@@ -35,11 +35,13 @@ services:
     plan: free
     region: oregon
     envVars:
-      - key: NEXT_PUBLIC_API_URL
+      - key: INTERNAL_BACKEND_URL
         fromService:
           type: web
           name: dealpilot-backend
           property: host
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
 
 databases:
   - name: dealpilot-db

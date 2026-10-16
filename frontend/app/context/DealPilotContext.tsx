@@ -6,7 +6,24 @@ import { Deal, Offer, Terms, Suggestion } from '../types';
 
 export type { Deal, Offer, Terms, Suggestion };
 
-export const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+export function resolveApiBaseUrl(): string {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('dealpilot-api-url');
+    if (saved && saved.trim()) return saved.trim().replace(/\/+$/, '');
+
+    // In a browser on cloud hosting (e.g. Render, Vercel), if NEXT_PUBLIC_API_URL isn't an external HTTPS URL:
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      const envUrl = process.env.NEXT_PUBLIC_API_URL;
+      if (envUrl && envUrl.startsWith('https://')) {
+        return envUrl.replace(/\/+$/, '');
+      }
+      return '/api/proxy';
+    }
+  }
+  return (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/+$/, '');
+}
+
+export const API = resolveApiBaseUrl();
 export const money = (c: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(c / 100);
 export const lines = (s: string) =>
@@ -85,6 +102,9 @@ interface DealPilotContextType {
   drafts: Record<string, { requirements?: string; proposalTerms?: Terms }>;
   setDraftRequirements: (dealId: string, text: string) => void;
   setDraftProposalTerms: (dealId: string, terms: Terms) => void;
+  apiUrl: string;
+  updateApiUrl: (url: string) => void;
+  checkHealth: (url?: string) => void;
 }
 
 const DealPilotContext = createContext<DealPilotContextType | null>(null);
@@ -93,6 +113,7 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  const [apiUrl, setApiUrlState] = useState<string>('');
   const [token, setToken] = useState('');
   const [role, setRole] = useState('');
   const [configured, setConfigured] = useState({
@@ -122,7 +143,8 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
 
   const api = useCallback(
     async (path: string, method = 'GET', body?: unknown, t = token) => {
-      const r = await fetch(API + path, {
+      const base = apiUrl || resolveApiBaseUrl();
+      const r = await fetch(base + path, {
         method,
         headers: {
           Authorization: 'Bearer ' + t,
@@ -140,7 +162,7 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
       }
       return data;
     },
-    [token]
+    [apiUrl, token]
   );
 
   const refreshDeals = useCallback(
@@ -258,15 +280,37 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
     setDrafts(prev => ({ ...prev, [dealId]: { ...prev[dealId], proposalTerms: terms } }));
   }, []);
 
-  // Health check & session bootstrap
-  useEffect(() => {
-    fetch(API + '/health')
+  const checkHealth = useCallback((urlToTest?: string) => {
+    const base = urlToTest !== undefined ? urlToTest : (apiUrl || resolveApiBaseUrl());
+    setHealth('Connecting');
+    fetch(base + '/health')
       .then(r => {
         if (!r.ok) throw Error();
         return r.json();
       })
       .then(() => setHealth('API connected'))
       .catch(() => setHealth('API offline'));
+  }, [apiUrl]);
+
+  const updateApiUrl = useCallback((newUrl: string) => {
+    const cleaned = newUrl.trim().replace(/\/+$/, '');
+    if (typeof window !== 'undefined') {
+      if (cleaned) {
+        localStorage.setItem('dealpilot-api-url', cleaned);
+      } else {
+        localStorage.removeItem('dealpilot-api-url');
+      }
+    }
+    const resolved = resolveApiBaseUrl();
+    setApiUrlState(resolved);
+    checkHealth(resolved);
+  }, [checkHealth]);
+
+  // Health check & session bootstrap
+  useEffect(() => {
+    const initialUrl = resolveApiBaseUrl();
+    setApiUrlState(initialUrl);
+    checkHealth(initialUrl);
 
     const invite = typeof window !== 'undefined' ? new URLSearchParams(location.hash.slice(1)).get('invite') : null;
     const dealParam = typeof window !== 'undefined' ? new URLSearchParams(location.search).get('deal') : null;
@@ -350,6 +394,9 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
         drafts,
         setDraftRequirements,
         setDraftProposalTerms,
+        apiUrl,
+        updateApiUrl,
+        checkHealth,
       }}
     >
       {children}

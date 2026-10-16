@@ -8,7 +8,7 @@ import { WorkspaceAccessCard } from './components/WorkspaceAccessCard';
 
 export default function EntryPage() {
   const router = useRouter();
-  const { role, login, health, deals, actionLoading, error } = useDealPilot();
+  const { role, login, health, deals, actionLoading, error, apiUrl, updateApiUrl } = useDealPilot();
 
   const [entry, setEntry] = useState('');
   const [showCode, setShowCode] = useState(false);
@@ -75,6 +75,8 @@ export default function EntryPage() {
             busy={isSubmitting || Boolean(actionLoading)}
             error={error}
             health={health}
+            apiUrl={apiUrl}
+            onUpdateApiUrl={updateApiUrl}
             onSubmit={handleSubmit}
           />
         </div>
