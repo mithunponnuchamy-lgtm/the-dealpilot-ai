@@ -194,16 +194,19 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
               }}
             >
               <BellIcon unread={mounted && unreadNotificationsCount > 0} />
-              <span style={{ fontSize: 13, fontWeight: 600 }}>Activity</span>
+              <span style={{ fontSize: 13, fontWeight: 600 }}>Notifications</span>
               {mounted && unreadNotificationsCount > 0 && (
                 <span
                   style={{
                     background: '#EF4444',
                     color: '#FFFFFF',
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: 700,
-                    padding: '1px 5px',
+                    padding: '1px 6px',
                     borderRadius: 99,
+                    minWidth: 18,
+                    textAlign: 'center',
+                    lineHeight: '14px',
                   }}
                 >
                   {unreadNotificationsCount}

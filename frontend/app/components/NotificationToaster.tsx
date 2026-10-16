@@ -121,6 +121,19 @@ export function NotificationToaster() {
                 >
                   {toast.type}
                 </span>
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 800,
+                    letterSpacing: '0.04em',
+                    padding: '2px 6px',
+                    borderRadius: 4,
+                    background: '#EF4444',
+                    color: '#FFFFFF',
+                  }}
+                >
+                  UNREAD
+                </span>
               </div>
               <button
                 type="button"
@@ -128,16 +141,31 @@ export function NotificationToaster() {
                   e.stopPropagation();
                   dismissToast(toast.id);
                 }}
-                aria-label="Dismiss notification"
+                aria-label="Close notification"
+                title="Close notification (X)"
                 style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#94a3b8',
+                  background: '#F1F5F9',
+                  border: '1px solid #CBD5E1',
+                  color: '#475569',
                   cursor: 'pointer',
-                  padding: 4,
+                  width: 26,
+                  height: 26,
+                  borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
-                  borderRadius: 4,
+                  justifyContent: 'center',
+                  transition: 'all 0.15s ease',
+                  flexShrink: 0,
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = '#FEE2E2';
+                  e.currentTarget.style.borderColor = '#FCA5A5';
+                  e.currentTarget.style.color = '#DC2626';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = '#F1F5F9';
+                  e.currentTarget.style.borderColor = '#CBD5E1';
+                  e.currentTarget.style.color = '#475569';
                 }}
               >
                 <CloseIcon />

@@ -140,7 +140,7 @@ export function NotificationPanel({
                   borderRadius: 99,
                 }}
               >
-                {unreadNotificationsCount}
+                {unreadNotificationsCount} unread
               </span>
             )}
           </div>

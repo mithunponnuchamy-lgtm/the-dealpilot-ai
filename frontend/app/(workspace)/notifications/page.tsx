@@ -94,11 +94,29 @@ export default function NotificationsPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <span className="eyebrow">ACTIVITY & ALERTS</span>
-          <h1 style={{ fontSize: 26, fontWeight: 700, margin: '4px 0 0', color: '#0f172a' }}>
-            Notifications Center
-          </h1>
-          <p style={{ margin: '4px 0 0', fontSize: 14, color: '#64748b' }}>
-            Track client approvals, counter-offers, rejections, and PayPal Sandbox payments in real time.
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}>
+            <h1 style={{ fontSize: 26, fontWeight: 700, margin: 0, color: '#0f172a' }}>
+              Notifications Center
+            </h1>
+            {unreadNotificationsCount > 0 && (
+              <span
+                style={{
+                  background: '#EF4444',
+                  color: '#FFFFFF',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  padding: '2px 8px',
+                  borderRadius: 99,
+                }}
+              >
+                {unreadNotificationsCount} unread
+              </span>
+            )}
+          </div>
+          <p style={{ margin: '6px 0 0', fontSize: 14, color: '#64748b' }}>
+            {unreadNotificationsCount > 0
+              ? `You have ${unreadNotificationsCount} unread notification${unreadNotificationsCount > 1 ? 's' : ''} waiting for your review.`
+              : 'Track client approvals, counter-offers, rejections, and PayPal Sandbox payments in real time.'}
           </p>
         </div>
 

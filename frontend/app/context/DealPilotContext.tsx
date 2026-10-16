@@ -113,6 +113,24 @@ interface DealPilotContextType {
   markAllNotificationsRead: () => void;
 }
 
+function getReadNotifIds(): Set<string> {
+  try {
+    if (typeof window !== 'undefined') {
+      const raw = localStorage.getItem('dealpilot-read-notifs');
+      if (raw) return new Set(JSON.parse(raw));
+    }
+  } catch {}
+  return new Set();
+}
+
+function saveReadNotifIds(ids: Set<string>) {
+  try {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('dealpilot-read-notifs', JSON.stringify(Array.from(ids)));
+    }
+  } catch {}
+}
+
 const DealPilotContext = createContext<DealPilotContextType | null>(null);
 
 export function DealPilotProvider({ children }: { children: ReactNode }) {
@@ -147,31 +165,45 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
   // Real-time notifications and toasts
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [toasts, setToasts] = useState<NotificationItem[]>([]);
-  const initializedRef = useRef<boolean>(false);
+  const playedSoundIdsRef = useRef<Set<string>>(new Set());
 
   const unreadNotificationsCount = notifications.filter(n => !n.read).length;
 
-  const popToast = useCallback((notif: NotificationItem) => {
-    setToasts(prev => [notif, ...prev.filter(t => t.id !== notif.id).slice(0, 3)]);
-    playNotificationSound(notif.type);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== notif.id));
-    }, 6000);
-  }, []);
-
   const dismissToast = useCallback((id: string) => {
+    // Manually closed by clicking X button:
+    // 1. Mark as read in localStorage so it will not pop up again
+    const readIds = getReadNotifIds();
+    readIds.add(id);
+    saveReadNotifIds(readIds);
+
+    // 2. Remove from active toasts immediately
     setToasts(prev => prev.filter(t => t.id !== id));
+
+    // 3. Mark read in notifications list so unread counter decrements immediately
+    setNotifications(prev =>
+      prev.map(n => (n.id === id ? { ...n, read: true } : n))
+    );
   }, []);
 
   const markNotificationRead = useCallback((id: string) => {
+    const readIds = getReadNotifIds();
+    readIds.add(id);
+    saveReadNotifIds(readIds);
+
+    setToasts(prev => prev.filter(t => t.id !== id));
     setNotifications(prev =>
       prev.map(n => (n.id === id ? { ...n, read: true } : n))
     );
   }, []);
 
   const markAllNotificationsRead = useCallback(() => {
+    const readIds = getReadNotifIds();
+    notifications.forEach(n => readIds.add(n.id));
+    saveReadNotifIds(readIds);
+
+    setToasts([]);
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-  }, []);
+  }, [notifications]);
 
   const deal = deals.find(x => x.id === activeDealId);
   const offer = deal?.offers.at(-1);
@@ -206,15 +238,9 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
       const list: Deal[] = await api('/deals', 'GET', undefined, t);
       setDeals(list);
 
-      // Load persistent record of seen notification keys
-      let seenKeys = new Set<string>();
-      try {
-        const raw = typeof window !== 'undefined' ? localStorage.getItem('dealpilot-seen-notifs') : null;
-        if (raw) seenKeys = new Set(JSON.parse(raw));
-      } catch {}
-
+      // Persistent record of read notifications
+      const readIds = getReadNotifIds();
       const realNotifications: NotificationItem[] = [];
-      const toPop: NotificationItem[] = [];
 
       list.forEach(dealItem => {
         const currentOffer = dealItem.offers.at(-1);
@@ -240,14 +266,10 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
               message: `Proposal v${currentOffer.version} for "${dealItem.title}" is waiting for your review and approval.`,
               role: 'freelancer',
               createdAt: currentOffer.created_at || dealItem.created_at || new Date().toISOString(),
-              read: seenKeys.has(notifId),
+              read: readIds.has(notifId),
               actionUrl: `/deals/${dealItem.id}/review`,
             };
             realNotifications.push(item);
-            if (!seenKeys.has(notifId)) {
-              seenKeys.add(notifId);
-              toPop.push(item);
-            }
           }
         } else if (role === 'freelancer') {
           // ==========================================
@@ -269,14 +291,10 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
                 message: `${dealItem.client} accepted the proposal for "${dealItem.title}".`,
                 role: 'client',
                 createdAt: o.created_at || dealItem.created_at || new Date().toISOString(),
-                read: seenKeys.has(notifId),
+                read: readIds.has(notifId),
                 actionUrl: `/deals/${dealItem.id}/review`,
               };
               realNotifications.push(item);
-              if (!seenKeys.has(notifId)) {
-                seenKeys.add(notifId);
-                toPop.push(item);
-              }
             }
 
             // 2. Client rejected the proposal
@@ -291,14 +309,10 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
                 message: `${dealItem.client} rejected the proposal for "${dealItem.title}".`,
                 role: 'client',
                 createdAt: o.created_at || dealItem.created_at || new Date().toISOString(),
-                read: seenKeys.has(notifId),
+                read: readIds.has(notifId),
                 actionUrl: `/deals/${dealItem.id}/negotiation`,
               };
               realNotifications.push(item);
-              if (!seenKeys.has(notifId)) {
-                seenKeys.add(notifId);
-                toPop.push(item);
-              }
             }
           });
 
@@ -314,14 +328,10 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
               message: `${dealItem.client} paid for the project "${dealItem.title}".`,
               role: 'client',
               createdAt: dealItem.payment.paid_at || dealItem.created_at || new Date().toISOString(),
-              read: seenKeys.has(notifId),
+              read: readIds.has(notifId),
               actionUrl: `/deals/${dealItem.id}/payment`,
             };
             realNotifications.push(item);
-            if (!seenKeys.has(notifId)) {
-              seenKeys.add(notifId);
-              toPop.push(item);
-            }
           }
         }
       });
@@ -330,22 +340,21 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
       realNotifications.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       setNotifications(realNotifications);
 
-      // Save seen keys in localStorage
-      try {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('dealpilot-seen-notifs', JSON.stringify(Array.from(seenKeys)));
-        }
-      } catch {}
+      // Unread notifications stay popped up until manually closed by clicking X button!
+      const unreadItems = realNotifications.filter(n => !n.read);
+      setToasts(unreadItems.slice(0, 4));
 
-      // Pop real toasts only on live state changes (after first initialization)
-      if (initializedRef.current && toPop.length > 0) {
-        toPop.forEach(notif => popToast(notif));
-      }
-      initializedRef.current = true;
+      // Play chime once per unique notification
+      unreadItems.forEach(notif => {
+        if (!playedSoundIdsRef.current.has(notif.id)) {
+          playedSoundIdsRef.current.add(notif.id);
+          playNotificationSound(notif.type);
+        }
+      });
 
       return list;
     },
-    [api, token, role, popToast]
+    [api, token, role]
   );
 
   const loadDeal = useCallback(
