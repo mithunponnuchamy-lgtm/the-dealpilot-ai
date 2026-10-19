@@ -7,6 +7,7 @@ import { SearchIcon, BellIcon } from '@/components/Icons';
 import { AgreementCertificateModal } from '@/components/AgreementCertificateModal';
 import { NotificationToaster } from '@/components/NotificationToaster';
 import { NotificationPanel } from '@/components/NotificationPanel';
+import { JudgeDemoBar } from '@/components/JudgeDemoBar';
 
 export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -170,6 +171,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
       </aside>
 
       <div className="main">
+        {mounted && <JudgeDemoBar />}
         <header className="topbar">
           <div className="topbar-breadcrumb">
             <span>Workspace</span>

@@ -8,7 +8,7 @@ import { WorkspaceAccessCard } from './components/WorkspaceAccessCard';
 
 export default function EntryPage() {
   const router = useRouter();
-  const { role, login, health, deals, actionLoading, error, apiUrl, updateApiUrl } = useDealPilot();
+  const { role, login, health, deals, actionLoading, error, apiUrl, updateApiUrl, loadJudgeDemo } = useDealPilot();
 
   const [entry, setEntry] = useState('');
   const [showCode, setShowCode] = useState(false);
@@ -78,6 +78,7 @@ export default function EntryPage() {
             apiUrl={apiUrl}
             onUpdateApiUrl={updateApiUrl}
             onSubmit={handleSubmit}
+            onLaunchJudgeDemo={() => void loadJudgeDemo()}
           />
         </div>
       </main>

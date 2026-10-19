@@ -12,6 +12,7 @@ export function WorkspaceAccessCard({
   apiUrl = '',
   onUpdateApiUrl,
   onSubmit,
+  onLaunchJudgeDemo,
 }: {
   entry: string;
   setEntry: (v: string) => void;
@@ -23,6 +24,7 @@ export function WorkspaceAccessCard({
   apiUrl?: string;
   onUpdateApiUrl?: (url: string) => void;
   onSubmit: (e: FormEvent) => void;
+  onLaunchJudgeDemo?: () => void;
 }) {
   const [customUrl, setCustomUrl] = useState(apiUrl);
 
@@ -39,6 +41,89 @@ export function WorkspaceAccessCard({
       <p className="access-desc">
         Use your private access code, or open the invitation shared with you.
       </p>
+
+      {onLaunchJudgeDemo && (
+        <div
+          style={{
+            background: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)',
+            border: '1px solid #93C5FD',
+            borderRadius: 10,
+            padding: '14px 16px',
+            marginBottom: 20,
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 6,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 16 }}>⚖️</span>
+              <b
+                style={{
+                  color: '#1E3A8A',
+                  fontSize: 12,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                }}
+              >
+                Hackathon Judge Fast-Track
+              </b>
+            </div>
+            <span
+              style={{
+                background: '#2563EB',
+                color: '#FFFFFF',
+                fontSize: 10,
+                fontWeight: 700,
+                padding: '2px 6px',
+                borderRadius: 4,
+                textTransform: 'uppercase',
+              }}
+            >
+              1-Click
+            </span>
+          </div>
+          <p
+            style={{
+              fontSize: 12,
+              color: '#1E40AF',
+              margin: '0 0 10px 0',
+              lineHeight: 1.4,
+            }}
+          >
+            Pre-seeds a showcase FinTech mobile redesign deal with active negotiation history
+            and proposal awaiting client approval.
+          </p>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={onLaunchJudgeDemo}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              padding: '10px 14px',
+              fontSize: 13,
+              fontWeight: 700,
+              background: 'linear-gradient(135deg, #0057FF 0%, #003087 100%)',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: 8,
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0, 87, 255, 0.25)',
+            }}
+          >
+            <span>⚡ Launch Judge Demo Workspace</span>
+            <span>→</span>
+          </button>
+        </div>
+      )}
 
       <form onSubmit={onSubmit} className="access-form">
         <label htmlFor="workspace-code" className="access-label">

@@ -111,6 +111,8 @@ interface DealPilotContextType {
   dismissToast: (id: string) => void;
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: () => void;
+  loadJudgeDemo: () => Promise<{ dealId: string; clientToken: string }>;
+  switchRole: (targetRole: 'freelancer' | 'client') => Promise<void>;
 }
 
 function getReadNotifIds(): Set<string> {
@@ -463,6 +465,69 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
     setDrafts(prev => ({ ...prev, [dealId]: { ...prev[dealId], proposalTerms: terms } }));
   }, []);
 
+  const loadJudgeDemo = useCallback(async () => {
+    setActionLoading('Initializing Hackathon Judge Showcase Deal…');
+    setError('');
+    try {
+      const base = apiUrl || resolveApiBaseUrl();
+      const r = await fetch(base + '/demo/seed', { method: 'POST' });
+      if (!r.ok) throw new Error('Failed to seed judge demo deal.');
+      const data = await r.json();
+
+      const { deal_id, client_token, freelancer_token } = data;
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('dealpilot-client-token-' + deal_id, client_token);
+        sessionStorage.setItem('dealpilot-freelancer-token', freelancer_token);
+      }
+
+      await login(freelancer_token, deal_id);
+      setActiveDealId(deal_id);
+      router.push(`/deals/${deal_id}/review`);
+      return { dealId: deal_id, clientToken: client_token };
+    } catch (err: any) {
+      setError(err?.message || 'Failed to initialize judge demo.');
+      throw err;
+    } finally {
+      setActionLoading('');
+    }
+  }, [apiUrl, login, router]);
+
+  const switchRole = useCallback(
+    async (targetRole: 'freelancer' | 'client') => {
+      if (!activeDealId) return;
+      setActionLoading(`Switching view to ${targetRole === 'client' ? 'Client' : 'Freelancer'}…`);
+      setError('');
+      try {
+        if (targetRole === 'client') {
+          let clientToken =
+            typeof window !== 'undefined'
+              ? sessionStorage.getItem('dealpilot-client-token-' + activeDealId)
+              : null;
+          if (!clientToken) {
+            const tokenRes = await api(`/deals/${activeDealId}/client-token`, 'GET');
+            clientToken = tokenRes.client_token;
+            if (typeof window !== 'undefined' && clientToken) {
+              sessionStorage.setItem('dealpilot-client-token-' + activeDealId, clientToken);
+            }
+          }
+          if (!clientToken) throw new Error('Could not obtain client token for this deal.');
+          await login(clientToken, activeDealId);
+        } else {
+          const freelancerToken =
+            (typeof window !== 'undefined'
+              ? sessionStorage.getItem('dealpilot-freelancer-token')
+              : null) || 'l23kTxGL6jBc21F0AMTvB2A6VYJfzco0VcqBqsZxTlbz2qGi';
+          await login(freelancerToken, activeDealId);
+        }
+      } catch (err: any) {
+        setError(err?.message || 'Failed to switch role.');
+      } finally {
+        setActionLoading('');
+      }
+    },
+    [activeDealId, api, login]
+  );
+
   const checkHealth = useCallback((urlToTest?: string) => {
     const base = urlToTest !== undefined ? urlToTest : (apiUrl || resolveApiBaseUrl());
     setHealth('Connecting');
@@ -586,6 +651,8 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
         dismissToast,
         markNotificationRead,
         markAllNotificationsRead,
+        loadJudgeDemo,
+        switchRole,
       }}
     >
       {children}

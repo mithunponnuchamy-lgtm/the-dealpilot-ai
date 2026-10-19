@@ -194,3 +194,24 @@ def test_simulate_payment(client,flow,owner):
     assert data['payment']['order_id'].startswith('SANDBOX-SIM-')
     assert data['payment']['capture_id'].startswith('CAPTURE-SIM-')
     assert data['frozen'] is True
+
+def test_seed_demo_and_client_token(client,owner):
+    res=client.post('/demo/seed')
+    assert res.status_code==200
+    data=res.json()
+    assert 'deal' in data
+    assert 'deal_id' in data
+    assert 'client_token' in data
+    assert 'freelancer_token' in data
+    deal=data['deal']
+    assert deal['title']=='FinTech Mobile App Redesign & Design System'
+    assert deal['status']=='awaiting approval'
+    assert len(deal['offers'])==1
+    assert deal['offers'][0]['approvals']==['freelancer']
+
+    # Test client token fetch
+    deal_id=data['deal_id']
+    tok_res=client.get(f'/deals/{deal_id}/client-token',headers=owner)
+    assert tok_res.status_code==200
+    assert 'client_token' in tok_res.json()
+
