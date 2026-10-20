@@ -5,12 +5,12 @@ function getBackendUrl(): string {
     process.env.INTERNAL_BACKEND_URL ||
     process.env.BACKEND_URL ||
     process.env.NEXT_PUBLIC_API_URL ||
-    'http://127.0.0.1:8000';
+    (process.env.NODE_ENV === 'production' ? 'https://dealpilot-backend-ghqy.onrender.com' : 'http://127.0.0.1:8000');
 
   if (!backend.startsWith('http://') && !backend.startsWith('https://')) {
     backend = `http://${backend}`;
   }
-  if (backend.startsWith('http://dealpilot-backend') && !backend.includes(':8000')) {
+  if (backend.startsWith('http://dealpilot-backend') && !backend.includes(':8000') && !backend.includes('.onrender.com')) {
     backend = `${backend}:8000`;
   }
   return backend.replace(/\/+$/, '');

@@ -8,10 +8,27 @@ export type { Deal, Offer, Terms, Suggestion, NotificationItem, NotificationType
 
 export function resolveApiBaseUrl(): string {
   if (typeof window !== 'undefined') {
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const apiParam = searchParams.get('api');
+      if (apiParam && apiParam.trim()) {
+        const cleanParam = apiParam.trim().replace(/\/+$/, '');
+        localStorage.setItem('dealpilot-api-url', cleanParam);
+        return cleanParam;
+      }
+    } catch {
+      // Ignore search param errors
+    }
+
     const saved = localStorage.getItem('dealpilot-api-url');
     if (saved && saved.trim()) return saved.trim().replace(/\/+$/, '');
 
-    // In a browser on cloud hosting (e.g. Render, Vercel), if NEXT_PUBLIC_API_URL isn't an external HTTPS URL:
+    // In a browser on Render cloud hosting, default directly to the live Render backend
+    if (window.location.hostname.includes('onrender.com')) {
+      return 'https://dealpilot-backend-ghqy.onrender.com';
+    }
+
+    // In a browser on cloud hosting (e.g. Vercel), if NEXT_PUBLIC_API_URL isn't an external HTTPS URL:
     if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
       const envUrl = process.env.NEXT_PUBLIC_API_URL;
       if (envUrl && envUrl.startsWith('https://')) {

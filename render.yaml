@@ -6,6 +6,7 @@ services:
     dockerContext: ./backend
     plan: free
     region: oregon
+    autoDeploy: true
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -34,14 +35,12 @@ services:
     dockerContext: ./frontend
     plan: free
     region: oregon
+    autoDeploy: true
     envVars:
       - key: INTERNAL_BACKEND_URL
-        fromService:
-          type: web
-          name: dealpilot-backend
-          property: host
+        value: https://dealpilot-backend-ghqy.onrender.com
       - key: NEXT_PUBLIC_API_URL
-        sync: false
+        value: https://dealpilot-backend-ghqy.onrender.com
 
 databases:
   - name: dealpilot-db
