@@ -161,6 +161,13 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState('');
   const [navDirection, setNavDirection] = useState<'forward' | 'backward' | 'none'>('none');
 
+  // Synchronized refs to eliminate race conditions and stale closure lag
+  const currentRoleRef = useRef(role);
+  currentRoleRef.current = role;
+
+  const activeDealIdRef = useRef(activeDealId);
+  activeDealIdRef.current = activeDealId;
+
   // Drafts keyed by deal ID
   const [drafts, setDrafts] = useState<Record<string, { requirements?: string; proposalTerms?: Terms }>>({});
 
@@ -235,10 +242,13 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
   );
 
   const refreshDeals = useCallback(
-    async (t = token) => {
+    async (t = token, overrideRole?: string, overrideActiveId?: string) => {
       if (!t) return [];
       const list: Deal[] = await api('/deals', 'GET', undefined, t);
       setDeals(list);
+
+      const effectiveRole = overrideRole || currentRoleRef.current || role;
+      const currentActiveId = overrideActiveId || activeDealIdRef.current || activeDealId;
 
       // Persistent record of read notifications
       const readIds = getReadNotifIds();
@@ -247,9 +257,11 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
       list.forEach(dealItem => {
         const currentOffer = dealItem.offers.at(-1);
 
-        if (role === 'client') {
+        if (effectiveRole === 'client') {
           // ==========================================
-          // CLIENT SIDE: "Waiting for your approval for this project"
+          // CLIENT SIDE ONLY:
+          // "Waiting for your approval for this project"
+          // ONLY generated and popped when viewing as Client!
           // ==========================================
           if (
             currentOffer &&
@@ -266,19 +278,20 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
               type: 'approval',
               title: 'Waiting for your approval for this project',
               message: `Proposal v${currentOffer.version} for "${dealItem.title}" is waiting for your review and approval.`,
-              role: 'freelancer',
+              role: 'client',
               createdAt: currentOffer.created_at || dealItem.created_at || new Date().toISOString(),
               read: readIds.has(notifId),
               actionUrl: `/deals/${dealItem.id}/review`,
             };
             realNotifications.push(item);
           }
-        } else if (role === 'freelancer') {
+        } else if (effectiveRole === 'freelancer') {
           // ==========================================
-          // FREELANCER SIDE:
-          // 1. "Accepted the proposal"
-          // 2. "Rejected the proposal"
-          // 3. "Paid for the project"
+          // FREELANCER SIDE ONLY:
+          // 1. "Accepted the proposal" (when client approved)
+          // 2. "Rejected the proposal" (when client rejected)
+          // 3. "Paid for the project" (when client paid)
+          // Freelancer NEVER sees client-wait approval prompts!
           // ==========================================
           dealItem.offers.forEach(o => {
             // 1. Client accepted the proposal
@@ -291,7 +304,7 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
                 type: 'approval',
                 title: 'Accepted the proposal',
                 message: `${dealItem.client} accepted the proposal for "${dealItem.title}".`,
-                role: 'client',
+                role: 'freelancer',
                 createdAt: o.created_at || dealItem.created_at || new Date().toISOString(),
                 read: readIds.has(notifId),
                 actionUrl: `/deals/${dealItem.id}/review`,
@@ -309,7 +322,7 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
                 type: 'rejection',
                 title: 'Rejected the proposal',
                 message: `${dealItem.client} rejected the proposal for "${dealItem.title}".`,
-                role: 'client',
+                role: 'freelancer',
                 createdAt: o.created_at || dealItem.created_at || new Date().toISOString(),
                 read: readIds.has(notifId),
                 actionUrl: `/deals/${dealItem.id}/negotiation`,
@@ -328,7 +341,7 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
               type: 'payment',
               title: 'Paid for the project',
               message: `${dealItem.client} paid for the project "${dealItem.title}".`,
-              role: 'client',
+              role: 'freelancer',
               createdAt: dealItem.payment.paid_at || dealItem.created_at || new Date().toISOString(),
               read: readIds.has(notifId),
               actionUrl: `/deals/${dealItem.id}/payment`,
@@ -342,12 +355,20 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
       realNotifications.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       setNotifications(realNotifications);
 
-      // Unread notifications stay popped up until manually closed by clicking X button!
+      // Context-aware unread popping:
+      // When inside a specific deal, ONLY unread notifications for THIS ACTIVE DEAL pop up on screen!
+      // This prevents notifications from other random historical deals popping up while working on a deal.
+      // In Freelancer mode, zero proposal notifications pop up (because it's waiting for client approval).
+      // When shifting to Client mode, the client's approval toast pops up!
       const unreadItems = realNotifications.filter(n => !n.read);
-      setToasts(unreadItems.slice(0, 4));
+      const toastsToPop = currentActiveId
+        ? unreadItems.filter(n => n.dealId === currentActiveId)
+        : unreadItems.slice(0, 3);
 
-      // Play chime once per unique notification
-      unreadItems.forEach(notif => {
+      setToasts(toastsToPop.slice(0, 3));
+
+      // Play chime once per unique notification that actually pops
+      toastsToPop.forEach(notif => {
         if (!playedSoundIdsRef.current.has(notif.id)) {
           playedSoundIdsRef.current.add(notif.id);
           playNotificationSound(notif.type);
@@ -356,15 +377,16 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
 
       return list;
     },
-    [api, token, role]
+    [api, token, role, activeDealId]
   );
 
   const loadDeal = useCallback(
     async (id: string) => {
       if (!token) return undefined;
-      const list = await refreshDeals();
+      activeDealIdRef.current = id;
+      setActiveDealId(id);
+      const list = await refreshDeals(token, undefined, id);
       const found = list.find(d => d.id === id);
-      if (found) setActiveDealId(id);
       return found;
     },
     [token, refreshDeals]
@@ -400,6 +422,7 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
   const login = useCallback(
     async (t: string, targetDealId?: string) => {
       const s = await api('/session', 'GET', undefined, t);
+      currentRoleRef.current = s.role;
       setToken(t);
       setRole(s.role);
       setConfigured({
@@ -409,16 +432,20 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
       });
       sessionStorage.setItem('dealpilot-token', t);
 
-      const list: Deal[] = await api('/deals', 'GET', undefined, t);
-      setDeals(list);
-
-      const resolvedDealId = targetDealId || s.deal_id || list[0]?.id || '';
+      const resolvedDealId = targetDealId || s.deal_id || '';
       if (resolvedDealId) {
+        activeDealIdRef.current = resolvedDealId;
         setActiveDealId(resolvedDealId);
       }
-      return { role: s.role, dealId: resolvedDealId };
+
+      const list = await refreshDeals(t, s.role, resolvedDealId);
+      if (!resolvedDealId && list.length > 0) {
+        activeDealIdRef.current = list[0].id;
+        setActiveDealId(list[0].id);
+      }
+      return { role: s.role, dealId: resolvedDealId || list[0]?.id || '' };
     },
-    [api]
+    [api, refreshDeals]
   );
 
   const logout = useCallback(() => {
@@ -495,9 +522,10 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
   const switchRole = useCallback(
     async (targetRole: 'freelancer' | 'client') => {
       if (!activeDealId) return;
-      setActionLoading(`Switching view to ${targetRole === 'client' ? 'Client' : 'Freelancer'}…`);
+      setActionLoading(`Switching view to ${targetRole === 'client' ? 'Client Mode' : 'Freelancer View'}…`);
       setError('');
       try {
+        currentRoleRef.current = targetRole;
         if (targetRole === 'client') {
           let clientToken =
             typeof window !== 'undefined'
