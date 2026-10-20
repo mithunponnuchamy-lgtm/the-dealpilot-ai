@@ -34,45 +34,57 @@ export function JudgeDemoBar() {
 
   if (minimized) {
     return (
-      <aside aria-label="Judge demo mode controls">
+      <div
+        role="region"
+        aria-label="Client mode controls"
+        style={{
+          position: 'fixed',
+          bottom: 20,
+          right: 20,
+          zIndex: 9999,
+        }}
+      >
         <button
           type="button"
           onClick={() => setMinimized(false)}
           aria-expanded="false"
           style={{
-            position: 'fixed',
-            top: 10,
-            right: 16,
-            zIndex: 9999,
-            background: 'linear-gradient(135deg, #1E3A8A 0%, #0F172A 100%)',
-            color: '#F8FAFC',
+            background: 'linear-gradient(135deg, #0A192F 0%, #1E3A8A 100%)',
+            color: '#FFFFFF',
             border: '1px solid #3B82F6',
-            borderRadius: 20,
-            padding: '6px 14px',
+            borderRadius: 30,
+            padding: '8px 16px',
             fontSize: 12,
             fontWeight: 700,
             cursor: 'pointer',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
-            display: 'flex',
+            boxShadow: '0 6px 16px rgba(0, 0, 0, 0.3)',
+            display: 'inline-flex',
             alignItems: 'center',
-            gap: 6,
+            gap: 8,
           }}
         >
-          <span>⚖️ Judge Demo Bar</span>
-          <span style={{ fontSize: 10, opacity: 0.8 }}>▾ Open</span>
+          <span>{role === 'client' ? '👤 Client Mode' : '🧑‍💻 Freelancer Mode'}</span>
+          <span style={{ fontSize: 10, background: 'rgba(255,255,255,0.2)', padding: '2px 6px', borderRadius: 10 }}>
+            Switch ▾
+          </span>
         </button>
-      </aside>
+      </div>
     );
   }
 
   return (
-    <aside
-      aria-label="Judge demo mode bar"
+    <div
+      role="region"
+      aria-label="Client mode switcher"
       style={{
-        background: 'linear-gradient(90deg, #091322 0%, #152A4A 45%, #0B192E 100%)',
+        width: '100%',
+        boxSizing: 'border-box',
+        background: role === 'client'
+          ? 'linear-gradient(90deg, #064E3B 0%, #065F46 45%, #047857 100%)'
+          : 'linear-gradient(90deg, #0A192F 0%, #1E3A8A 45%, #0F172A 100%)',
         color: '#F8FAFC',
-        borderBottom: '1px solid rgba(59, 130, 246, 0.3)',
-        padding: '8px 16px',
+        borderBottom: role === 'client' ? '1px solid #10B981' : '1px solid rgba(59, 130, 246, 0.35)',
+        padding: '10px 24px',
         fontSize: 13,
         display: 'flex',
         flexWrap: 'wrap',
@@ -82,40 +94,41 @@ export function JudgeDemoBar() {
         position: 'sticky',
         top: 0,
         zIndex: 1000,
-        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.35)',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+        transition: 'background 0.3s ease',
       }}
     >
-      {/* Left: Judge Badge & Quick Role Switcher */}
+      {/* Left: Mode Badge & Quick Role Toggle */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <div
           style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: 6,
-            background: 'rgba(234, 179, 8, 0.15)',
-            border: '1px solid rgba(234, 179, 8, 0.4)',
+            background: role === 'client' ? 'rgba(16, 185, 129, 0.25)' : 'rgba(59, 130, 246, 0.25)',
+            border: role === 'client' ? '1px solid #34D399' : '1px solid #60A5FA',
             borderRadius: 6,
             padding: '3px 8px',
-            color: '#FDE047',
+            color: '#FFFFFF',
             fontSize: 11,
             fontWeight: 800,
             letterSpacing: '0.04em',
             textTransform: 'uppercase',
           }}
         >
-          <span>⚖️</span>
-          <span>Judge Mode</span>
+          <span>{role === 'client' ? '👤' : '🧑‍💻'}</span>
+          <span>{role === 'client' ? 'Client Mode Active' : 'Freelancer View'}</span>
         </div>
 
-        {activeDealId ? (
+        {activeDealId && (
           <div
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              background: 'rgba(0, 0, 0, 0.35)',
+              background: 'rgba(0, 0, 0, 0.3)',
               borderRadius: 8,
               padding: 2,
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
             }}
           >
             <button
@@ -127,7 +140,7 @@ export function JudgeDemoBar() {
                   role === 'freelancer'
                     ? 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)'
                     : 'transparent',
-                color: role === 'freelancer' ? '#FFFFFF' : '#94A3B8',
+                color: role === 'freelancer' ? '#FFFFFF' : '#CBD5E1',
                 border: 'none',
                 borderRadius: 6,
                 padding: '4px 10px',
@@ -141,7 +154,7 @@ export function JudgeDemoBar() {
               }}
             >
               <span>🧑‍💻</span>
-              <span>Freelancer (Sarah)</span>
+              <span>Freelancer View</span>
             </button>
 
             <button
@@ -153,7 +166,7 @@ export function JudgeDemoBar() {
                   role === 'client'
                     ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)'
                     : 'transparent',
-                color: role === 'client' ? '#FFFFFF' : '#94A3B8',
+                color: role === 'client' ? '#FFFFFF' : '#CBD5E1',
                 border: 'none',
                 borderRadius: 6,
                 padding: '4px 10px',
@@ -167,20 +180,16 @@ export function JudgeDemoBar() {
               }}
             >
               <span>👤</span>
-              <span>Client (Alex)</span>
+              <span>Client Mode</span>
             </button>
           </div>
-        ) : (
-          <span style={{ color: '#94A3B8', fontSize: 12 }}>
-            Viewing Workspace Overview
-          </span>
         )}
       </div>
 
       {/* Middle: Stepper Shortcuts (if on a deal) */}
       {activeDealId && (
         <nav
-          aria-label="Judge quick navigation steps"
+          aria-label="Workflow quick navigation steps"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -195,10 +204,10 @@ export function JudgeDemoBar() {
                 key={s.path}
                 href={s.path}
                 style={{
-                  background: isActive ? 'rgba(59, 130, 246, 0.25)' : 'transparent',
-                  color: isActive ? '#60A5FA' : '#CBD5E1',
+                  background: isActive ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
+                  color: isActive ? '#FFFFFF' : '#E2E8F0',
                   border: isActive
-                    ? '1px solid rgba(96, 165, 250, 0.5)'
+                    ? '1px solid rgba(255, 255, 255, 0.4)'
                     : '1px solid transparent',
                   borderRadius: 6,
                   padding: '3px 8px',
@@ -224,9 +233,9 @@ export function JudgeDemoBar() {
           onClick={() => void loadJudgeDemo()}
           title="Reload fresh showcase deal with sample proposal & negotiation"
           style={{
-            background: 'rgba(255, 255, 255, 0.08)',
-            color: '#F8FAFC',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
+            background: 'rgba(255, 255, 255, 0.12)',
+            color: '#FFFFFF',
+            border: '1px solid rgba(255, 255, 255, 0.25)',
             borderRadius: 6,
             padding: '4px 10px',
             fontSize: 12,
@@ -239,17 +248,17 @@ export function JudgeDemoBar() {
           }}
         >
           <span>⚡</span>
-          <span>Reset Demo Deal</span>
+          <span>Reset Sample Deal</span>
         </button>
 
         <button
           type="button"
           onClick={() => setMinimized(true)}
-          title="Minimize judge bar"
-          aria-label="Minimize judge bar"
+          title="Minimize bar"
+          aria-label="Minimize bar"
           style={{
             background: 'transparent',
-            color: '#94A3B8',
+            color: '#E2E8F0',
             border: 'none',
             fontSize: 14,
             cursor: 'pointer',
@@ -260,6 +269,6 @@ export function JudgeDemoBar() {
           ✕
         </button>
       </div>
-    </aside>
+    </div>
   );
 }

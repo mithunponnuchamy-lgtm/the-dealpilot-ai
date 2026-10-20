@@ -61,7 +61,7 @@ export function WorkspaceAccessCard({
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 16 }}>⚖️</span>
+              <span style={{ fontSize: 16 }}>⚡</span>
               <b
                 style={{
                   color: '#1E3A8A',
@@ -70,7 +70,7 @@ export function WorkspaceAccessCard({
                   letterSpacing: '0.04em',
                 }}
               >
-                Hackathon Judge Fast-Track
+                Interactive Demo & Client Mode
               </b>
             </div>
             <span
@@ -96,7 +96,7 @@ export function WorkspaceAccessCard({
             }}
           >
             Pre-seeds a showcase FinTech mobile redesign deal with active negotiation history
-            and proposal awaiting client approval.
+            and proposal. Switch between Freelancer and Client Mode to test approvals and payments.
           </p>
           <button
             type="button"
@@ -119,7 +119,7 @@ export function WorkspaceAccessCard({
               boxShadow: '0 2px 8px rgba(0, 87, 255, 0.25)',
             }}
           >
-            <span>⚡ Launch Judge Demo Workspace</span>
+            <span>⚡ Launch Demo with Client Mode</span>
             <span>→</span>
           </button>
         </div>

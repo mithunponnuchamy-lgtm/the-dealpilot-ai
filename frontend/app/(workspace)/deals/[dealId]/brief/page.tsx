@@ -194,31 +194,52 @@ export default function BriefPage({
           {deal.extraction && (
             <div className="ai-result">
               <h3>AI draft · review before using</h3>
-              <p>{deal.extraction.description}</p>
-              <ul>
-                {deal.extraction.deliverables.map((x, i) => (
-                  <li key={i}>{x}</li>
-                ))}
-              </ul>
+              {deal.extraction.description && <p>{deal.extraction.description}</p>}
+              {Array.isArray(deal.extraction.deliverables) && deal.extraction.deliverables.length > 0 && (
+                <ul>
+                  {deal.extraction.deliverables.map((x, i) => (
+                    <li key={i}>{x}</li>
+                  ))}
+                </ul>
+              )}
               <p>
                 Budget:{' '}
-                {deal.extraction.budget_usd === null
-                  ? 'Not specified'
+                {deal.extraction.budget_usd === null || deal.extraction.budget_usd === undefined
+                  ? (deal.extraction as any).estimated_budget_cents
+                    ? money((deal.extraction as any).estimated_budget_cents)
+                    : 'Not specified'
                   : money(deal.extraction.budget_usd * 100)}{' '}
-                · Deadline: {deal.extraction.deadline || 'Not specified'}
+                · Deadline:{' '}
+                {deal.extraction.deadline ||
+                  ((deal.extraction as any).estimated_delivery_days
+                    ? `${(deal.extraction as any).estimated_delivery_days} days`
+                    : 'Not specified')}
               </p>
-              <b>Clarification questions</b>
-              <ul>
-                {deal.extraction.missing_information.map((x, i) => (
-                  <li key={i}>{x}</li>
-                ))}
-              </ul>
-              <b>Unconfirmed assumptions</b>
-              <ul>
-                {deal.extraction.assumptions.map((x, i) => (
-                  <li key={i}>{x}</li>
-                ))}
-              </ul>
+              {((deal.extraction.missing_information && deal.extraction.missing_information.length > 0) ||
+                ((deal.extraction as any).clarification_questions &&
+                  (deal.extraction as any).clarification_questions.length > 0)) && (
+                <>
+                  <b>Clarification questions</b>
+                  <ul>
+                    {(deal.extraction.missing_information ||
+                      (deal.extraction as any).clarification_questions ||
+                      []
+                    ).map((x: string, i: number) => (
+                      <li key={i}>{x}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              {Array.isArray(deal.extraction.assumptions) && deal.extraction.assumptions.length > 0 && (
+                <>
+                  <b>Unconfirmed assumptions</b>
+                  <ul>
+                    {deal.extraction.assumptions.map((x, i) => (
+                      <li key={i}>{x}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
               <div style={{ marginTop: '14px' }}>
                 <button
                   type="button"

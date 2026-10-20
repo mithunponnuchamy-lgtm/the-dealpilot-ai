@@ -267,6 +267,7 @@ def seed_demo(db: Session = DB):
             'developer handoff specifications with micro-interaction prototypes.'
         ),
         extraction={
+            'description': 'Design high-fidelity iOS & Android checkout flows with integrated PayPal Sandbox modal, component design system, and developer handoff specs.',
             'deliverables': [
                 'High-fidelity Figma UI prototypes for iOS & Android checkout flows',
                 'Complete design system with 40+ responsive payment & wallet components',
@@ -276,8 +277,12 @@ def seed_demo(db: Session = DB):
                 'Native iOS/Android Swift/Kotlin production backend deployment',
                 'Merchant account registration and regulatory compliance filing'
             ],
-            'estimated_budget_cents': 350000,
-            'estimated_delivery_days': 14,
+            'budget_usd': 3500,
+            'deadline': '14 days',
+            'missing_information': [
+                'Do you require dark mode variants for the payment flow screens?',
+                'Will the Figma handoff require tokenized style variables for Tailwind CSS?'
+            ],
             'clarification_questions': [
                 'Do you require dark mode variants for the payment flow screens?',
                 'Will the Figma handoff require tokenized style variables for Tailwind CSS?'
