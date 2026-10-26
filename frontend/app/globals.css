@@ -2865,6 +2865,9 @@ hr {
   html, body {
     margin: 0 !important;
     padding: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
     background: #FFFFFF !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -2882,38 +2885,36 @@ hr {
     visibility: visible;
   }
 
-  #printable-certificate,
-  #printable-dispute-shield {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #FFFFFF !important;
-    box-shadow: none !important;
-    border: none !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
-
-  .cert-actions-top,
-  .dispute-shield-actions-top,
-  .sidebar,
-  .client-mode-bar,
-  .judge-demo-bar,
+  /* Completely collapse the underlying application shell and background chrome from print layout */
+  .app > aside,
+  .app > .main,
+  .entry-wrapper,
   .notification-toaster,
   .notification-toast,
   .notification-panel,
+  .cert-actions-top,
+  .dispute-shield-actions-top,
+  .client-mode-bar,
+  .judge-demo-bar,
   .task-action-bar,
   .cert-hint-pill,
-  .workspace-layout,
   body > header,
-  body > footer,
-  .main-content,
-  .main-content > footer {
+  body > footer {
     display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .app {
+    display: block !important;
+    grid-template-columns: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
     background: transparent !important;
   }
 
@@ -2942,23 +2943,44 @@ hr {
     margin: 0 !important;
     width: 100% !important;
     height: auto !important;
+    min-height: 0 !important;
     inset: auto !important;
     box-shadow: none !important;
     backdrop-filter: none !important;
+    overflow: visible !important;
   }
 
   .cert-modal,
   .dispute-shield-modal {
     position: static !important;
+    display: block !important;
     width: 100% !important;
     max-width: 100% !important;
     height: auto !important;
+    min-height: 0 !important;
     max-height: none !important;
     overflow: visible !important;
     border: none !important;
     box-shadow: none !important;
     background: transparent !important;
     padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  #printable-certificate,
+  #printable-dispute-shield {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #FFFFFF !important;
+    box-shadow: none !important;
+    border: none !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   /* Micro-tuning to strictly fit within 1 standard A4 sheet */
