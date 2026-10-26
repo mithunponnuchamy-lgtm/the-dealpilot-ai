@@ -139,7 +139,7 @@ export function WorkspaceAccessCard({
             onChange={e => setEntry(e.target.value)}
             required
             minLength={32}
-            placeholder="Paste your 32+ character code…"
+            placeholder="Paste code or click Auto-fill Demo Key below…"
             aria-describedby="code-helper"
             className="access-input"
           />
@@ -155,25 +155,25 @@ export function WorkspaceAccessCard({
           </button>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
-          <p id="code-helper" className="helper-text" style={{ margin: 0 }}>
-            Your freelancer code or client invitation code.
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6, marginBottom: 8 }}>
+          <p id="code-helper" className="helper-text" style={{ margin: 0, fontSize: 11.5 }}>
+            Freelancer or client invitation code.
           </p>
           <button
             type="button"
             onClick={() => setEntry('l23kTxGL6jBc21F0AMTvB2A6VYJfzco0VcqBqsZxTlbz2qGi')}
             style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--blue-primary)',
-              fontSize: 12,
-              fontWeight: 500,
+              background: '#EFF6FF',
+              border: '1px solid #BFDBFE',
+              borderRadius: 5,
+              color: '#1D4ED8',
+              fontSize: 11.5,
+              fontWeight: 700,
               cursor: 'pointer',
-              padding: '2px 4px',
-              textDecoration: 'underline',
+              padding: '3px 8px',
             }}
           >
-            Use demo code
+            ⚡ Auto-fill Demo Key
           </button>
         </div>
 

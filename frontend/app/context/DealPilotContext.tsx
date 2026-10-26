@@ -515,22 +515,39 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
   const loadJudgeDemo = useCallback(async () => {
     setActionLoading('Initializing Hackathon Judge Showcase Deal…');
     setError('');
+    const freelancer_token = 'l23kTxGL6jBc21F0AMTvB2A6VYJfzco0VcqBqsZxTlbz2qGi';
     try {
       const base = apiUrl || resolveApiBaseUrl();
-      const r = await fetch(base + '/demo/seed', { method: 'POST' });
-      if (!r.ok) throw new Error('Failed to seed judge demo deal.');
-      const data = await r.json();
+      let deal_id: string | undefined = undefined;
+      let client_token: string | undefined = undefined;
 
-      const { deal_id, client_token, freelancer_token } = data;
+      try {
+        const r = await fetch(base + '/demo/seed', { method: 'POST' });
+        if (r.ok) {
+          const data = await r.json();
+          deal_id = data.deal_id;
+          client_token = data.client_token;
+          if (typeof window !== 'undefined' && deal_id && client_token) {
+            sessionStorage.setItem('dealpilot-client-token-' + deal_id, client_token);
+          }
+        }
+      } catch (seedErr) {
+        console.warn('Seed endpoint notice:', seedErr);
+      }
+
       if (typeof window !== 'undefined') {
-        sessionStorage.setItem('dealpilot-client-token-' + deal_id, client_token);
+        sessionStorage.setItem('dealpilot-token', freelancer_token);
         sessionStorage.setItem('dealpilot-freelancer-token', freelancer_token);
       }
 
-      await login(freelancer_token, deal_id);
-      setActiveDealId(deal_id);
-      router.push(`/deals/${deal_id}/review`);
-      return { dealId: deal_id, clientToken: client_token };
+      const loginRes = await login(freelancer_token, deal_id);
+      if (deal_id) {
+        setActiveDealId(deal_id);
+        router.push(`/deals/${deal_id}/review`);
+      } else {
+        router.push('/dashboard');
+      }
+      return { dealId: deal_id || loginRes.dealId, clientToken: client_token || '' };
     } catch (err: any) {
       setError(err?.message || 'Failed to initialize judge demo.');
       throw err;

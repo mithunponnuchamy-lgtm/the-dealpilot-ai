@@ -4,6 +4,7 @@ import httpx
 from fastapi import HTTPException
 from pydantic import ValidationError
 from ..schemas import Extraction, Suggestion, RiskAnalysis
+from .. import config
 from . import integrity
 
 import copy
@@ -49,7 +50,7 @@ def get_provider_info():
     gemini_key = os.getenv('GEMINI_API_KEY')
     openai_key = os.getenv('OPENAI_API_KEY')
     if gemini_key:
-        model = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
+        model = os.getenv('GEMINI_MODEL', 'gemini-3.5-flash-lite')
         return {'configured': True, 'provider': 'gemini', 'model': model, 'label': f'Google Gemini ({model})'}
     if openai_key:
         model = os.getenv('OPENAI_MODEL', 'gpt-4.1-mini')
@@ -77,7 +78,7 @@ def generate(schema, instruction: str, context: str):
 
     try:
         if gemini_key:
-            primary_model = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
+            primary_model = os.getenv('GEMINI_MODEL', 'gemini-3.5-flash-lite')
             models_to_try = [primary_model]
             for fallback in ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash']:
                 if fallback not in models_to_try:

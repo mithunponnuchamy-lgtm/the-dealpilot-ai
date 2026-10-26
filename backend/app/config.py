@@ -12,4 +12,6 @@ elif DATABASE_URL.startswith('postgresql://') and not DATABASE_URL.startswith('p
     DATABASE_URL = DATABASE_URL.replace('postgresql://', 'postgresql+psycopg://', 1)
 
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000').rstrip('/')
-WORKSPACE_TOKEN = os.getenv('WORKSPACE_TOKEN', '')
+WORKSPACE_TOKEN = (os.getenv('WORKSPACE_TOKEN', '') or '').strip() or 'l23kTxGL6jBc21F0AMTvB2A6VYJfzco0VcqBqsZxTlbz2qGi'
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
+GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-3.5-flash-lite')
