@@ -215,3 +215,37 @@ def test_seed_demo_and_client_token(client,owner):
     assert tok_res.status_code==200
     assert 'client_token' in tok_res.json()
 
+def test_two_phase_milestone_escrow(client, owner):
+    res = client.post('/demo/seed', headers=owner)
+    deal_id = res.json()['deal_id']
+    client_token = res.json()['client_token']
+    client_auth = {'Authorization': f'Bearer {client_token}'}
+
+    # Client approves version 1
+    appr = client.post(f'/deals/{deal_id}/approve', headers=client_auth, json={'version': 1})
+    assert appr.status_code == 200
+
+    # Simulate PayPal Sandbox payment (triggers 50% deposit capture, 50% escrow hold)
+    pay = client.post(f'/deals/{deal_id}/simulate-payment', headers=client_auth, json={'version': 1})
+    assert pay.status_code == 200
+    p = pay.json()['payment']
+    assert p['status'] == 'paid'
+    assert p['milestones'] is not None
+    assert p['milestones']['model'] == 'two_phase_escrow'
+    assert p['milestones']['phase1']['status'] == 'completed'
+    assert p['milestones']['phase2']['status'] == 'held'
+
+    # Freelancer submits deliverables for handoff
+    sub = client.post(f'/deals/{deal_id}/milestones/submit', headers=owner)
+    assert sub.status_code == 200
+    p_sub = sub.json()['payment']
+    assert p_sub['milestones']['phase2']['status'] == 'submitted'
+
+    # Client accepts handoff and releases final 50% capture
+    rel = client.post(f'/deals/{deal_id}/milestones/release', headers=client_auth)
+    assert rel.status_code == 200
+    p_rel = rel.json()['payment']
+    assert p_rel['milestones']['phase2']['status'] == 'completed'
+    assert p_rel['milestones']['phase2']['capture_id'].startswith('CAPTURE-SIM-P2-')
+
+

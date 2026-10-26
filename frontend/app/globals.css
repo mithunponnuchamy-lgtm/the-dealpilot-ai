@@ -2876,11 +2876,14 @@ hr {
   }
 
   #printable-certificate,
-  #printable-certificate * {
+  #printable-certificate *,
+  #printable-dispute-shield,
+  #printable-dispute-shield * {
     visibility: visible;
   }
 
-  #printable-certificate {
+  #printable-certificate,
+  #printable-dispute-shield {
     position: absolute !important;
     left: 0 !important;
     top: 0 !important;
@@ -2896,35 +2899,42 @@ hr {
   }
 
   .cert-actions-top,
+  .dispute-shield-actions-top,
   .sidebar,
   .client-mode-bar,
   .judge-demo-bar,
   .notification-toaster,
+  .notification-toast,
   .notification-panel,
   .task-action-bar,
   .cert-hint-pill,
+  .workspace-layout,
   body > header,
   body > footer,
+  .main-content,
   .main-content > footer {
     display: none !important;
     background: transparent !important;
   }
 
-  .cert-header {
+  .cert-header,
+  .shield-header {
     display: flex !important;
     visibility: visible !important;
     margin-bottom: 8px !important;
     padding-bottom: 8px !important;
   }
 
-  .cert-footer {
+  .cert-footer,
+  .shield-footer {
     display: block !important;
     visibility: visible !important;
     margin-top: 6px !important;
     padding-top: 6px !important;
   }
 
-  .modal-backdrop.cert-backdrop {
+  .modal-backdrop.cert-backdrop,
+  .modal-backdrop.dispute-shield-backdrop {
     position: static !important;
     display: block !important;
     background: transparent !important;
@@ -2937,7 +2947,8 @@ hr {
     backdrop-filter: none !important;
   }
 
-  .cert-modal {
+  .cert-modal,
+  .dispute-shield-modal {
     position: static !important;
     width: 100% !important;
     max-width: 100% !important;
@@ -3216,4 +3227,863 @@ hr {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ==========================================================================
+   PAYPAL DISPUTE SHIELD EVIDENCE BUNDLE MODAL
+   ========================================================================== */
+.dispute-shield-backdrop {
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+}
+
+.dispute-shield-modal {
+  width: 840px;
+  max-width: 96vw;
+  max-height: 94vh;
+  padding: 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 60px -15px rgba(6, 95, 70, 0.35);
+  border: 1px solid rgba(6, 95, 70, 0.2);
+}
+
+.shield-tag-pill {
+  font-size: 11px;
+  font-weight: 700;
+  color: #047857;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  padding: 3px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dispute-document {
+  padding: 26px 32px;
+  overflow-y: auto;
+  background: #FFFFFF;
+  color: #0F172A;
+  font-family: var(--font-body, 'Inter', -apple-system, sans-serif);
+  line-height: 1.4;
+}
+
+.shield-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 2px solid #065F46;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+}
+
+.paypal-shield-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.pp-logo {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: #003087;
+  color: #FFFFFF;
+  font-weight: 900;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shield-title-badge {
+  font-size: 10px;
+  font-weight: 800;
+  color: #065F46;
+  background: #DCFCE7;
+  border: 1px solid #86EFAC;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.shield-main-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: #064E3B;
+  letter-spacing: -0.4px;
+  font-family: var(--font-heading, sans-serif);
+}
+
+.shield-dossier-sub {
+  margin: 2px 0 0;
+  font-size: 11.5px;
+  color: #475569;
+}
+
+.shield-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.shield-dossier-pill {
+  font-size: 10px;
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: flex;
+  gap: 5px;
+}
+
+.shield-dossier-pill b {
+  font-family: var(--font-mono, monospace);
+  color: #0F172A;
+}
+
+.shield-date {
+  font-size: 9.5px;
+  color: #64748B;
+  font-weight: 600;
+}
+
+.defense-classification-banner {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-left: 4px solid #DC2626;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.defense-banner-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  color: #991B1B;
+  margin-bottom: 2px;
+}
+
+.defense-banner-text {
+  margin: 0;
+  font-size: 10.5px;
+  color: #7F1D1D;
+  line-height: 1.35;
+}
+
+.shield-section {
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  background: #FAFAFA;
+}
+
+.shield-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.section-step-num {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #065F46;
+  color: #FFFFFF;
+  font-size: 9.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shield-section-header h4 {
+  margin: 0;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #0F172A;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.shield-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.shield-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.shield-cell small {
+  font-size: 8.5px;
+  font-weight: 700;
+  color: #64748B;
+  letter-spacing: 0.5px;
+}
+
+.shield-cell code {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  background: #FFFFFF;
+  padding: 2px 5px;
+  border-radius: 4px;
+  border: 1px solid #CBD5E1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shield-cell b {
+  font-size: 11px;
+}
+
+.shield-cell b.green {
+  color: #059669;
+}
+
+.shield-parties-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.shield-party-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.shield-party-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3px;
+}
+
+.party-kicker {
+  font-size: 9px;
+  font-weight: 700;
+  color: #64748B;
+  letter-spacing: 0.5px;
+}
+
+.verified-check {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #059669;
+}
+
+.auth-audit-line {
+  font-size: 9px;
+  color: #64748B;
+  display: flex;
+  gap: 4px;
+  margin-top: 3px;
+}
+
+.shield-scope-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.shield-scope-box {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.shield-scope-box.in-scope {
+  border-left: 3px solid #10B981;
+}
+
+.shield-scope-box.out-of-scope {
+  border-left: 3px solid #DC2626;
+  background: #FFFDFD;
+}
+
+.exclusion-warning-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.scope-box-heading {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #1E293B;
+}
+
+.scope-box-heading.red {
+  color: #991B1B;
+}
+
+.defense-tag {
+  font-size: 8.5px;
+  font-weight: 800;
+  background: #FEE2E2;
+  color: #991B1B;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.shield-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 10.5px;
+  line-height: 1.3;
+}
+
+.shield-list li {
+  display: flex;
+  gap: 5px;
+  align-items: flex-start;
+}
+
+.shield-list .check {
+  color: #059669;
+  font-weight: 700;
+}
+
+.shield-list .cross {
+  color: #DC2626;
+  font-weight: 700;
+}
+
+.exclusion-legal-notice {
+  font-size: 9px;
+  color: #991B1B;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 4px;
+  padding: 4px 6px;
+  margin-top: 6px;
+  line-height: 1.3;
+}
+
+.shield-milestone-ledger {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.milestone-line-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+.milestone-line-item .ms-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.milestone-line-item .ms-info b {
+  font-size: 11px;
+}
+
+.milestone-line-item .ms-info small {
+  font-size: 9.5px;
+  color: #64748B;
+}
+
+.ms-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.ms-badge.green {
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.ms-badge.amber {
+  background: #FFFBEB;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+}
+
+.shield-footer {
+  border-top: 1px solid #E2E8F0;
+  padding-top: 8px;
+  margin-top: 6px;
+}
+
+.shield-footer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.shield-crypto-seal {
+  font-size: 9.5px;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.shield-crypto-seal code {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  background: #F1F5F9;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid #CBD5E1;
+}
+
+.shield-official-tag {
+  font-size: 8.5px;
+  font-weight: 800;
+  color: #065F46;
+  letter-spacing: 0.5px;
+}
+
+.shield-disclaimer {
+  margin: 0;
+  font-size: 8px;
+  color: #94A3B8;
+  line-height: 1.35;
+  text-align: justify;
+}
+
+.shield-nav-btn {
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.shield-nav-btn:hover {
+  background: #D1FAE5;
+}
+
+/* ==========================================================================
+   MULTI-CURRENCY PREVIEW & PAYPAL GLOBAL FX STYLES
+   ========================================================================== */
+.currency-preview-card {
+  margin: 16px 0;
+  border: 1px solid #E2E8F0;
+  background: #FAFAFC;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.currency-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.currency-brand-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.currency-icon {
+  font-size: 20px;
+}
+
+.currency-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.currency-subtitle {
+  margin: 2px 0 0;
+  font-size: 11.5px;
+  color: #64748B;
+}
+
+.paypal-fx-badge {
+  font-size: 10px;
+  font-weight: 700;
+  background: #EFF6FF;
+  color: #0057FF;
+  border: 1px solid #BFDBFE;
+  padding: 3px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.currency-pill-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.currency-pill-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  font-size: 12px;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.currency-pill-btn:hover {
+  border-color: #0057FF;
+}
+
+.currency-pill-btn.active {
+  background: #0057FF;
+  color: #FFFFFF;
+  border-color: #0057FF;
+  box-shadow: 0 2px 6px rgba(0, 87, 255, 0.25);
+}
+
+.currency-conversion-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.currency-stat-box {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.currency-stat-box.client-pays {
+  border-left: 3px solid #0057FF;
+}
+
+.currency-stat-box.freelancer-receives {
+  border-left: 3px solid #10B981;
+}
+
+.currency-stat-box .stat-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: #64748B;
+}
+
+.stat-val-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.stat-val-row .stat-symbol {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.stat-val-row .stat-num {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0F172A;
+  font-family: var(--font-heading, sans-serif);
+}
+
+.stat-val-row .stat-code {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748B;
+}
+
+.stat-note {
+  font-size: 10px;
+  color: #64748B;
+  margin-top: 2px;
+}
+
+.stat-note.green {
+  color: #059669;
+  font-weight: 600;
+}
+
+.currency-arrow-divider {
+  font-size: 20px;
+  color: #94A3B8;
+  font-weight: 700;
+}
+
+.currency-footer-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #E2E8F0;
+  padding-top: 10px;
+  font-size: 11px;
+  color: #64748B;
+}
+
+.fx-guarantee-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fx-settlement-tag {
+  font-size: 10px;
+  font-weight: 600;
+  color: #003087;
+}
+
+/* ==========================================================================
+   MILESTONE ESCROW CARD STYLES
+   ========================================================================== */
+.milestone-escrow-card {
+  margin: 18px 0;
+  border: 1px solid #BBF7D0;
+  background: #F0FDF4;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.milestone-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #DCFCE7;
+  padding-bottom: 10px;
+}
+
+.milestone-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.milestone-icon {
+  font-size: 22px;
+}
+
+.milestone-heading {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #064E3B;
+}
+
+.milestone-subheading {
+  margin: 2px 0 0;
+  font-size: 11.5px;
+  color: #065F46;
+}
+
+.milestone-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.3px;
+}
+
+.milestone-badge.green {
+  background: #DCFCE7;
+  color: #047857;
+  border: 1px solid #86EFAC;
+}
+
+.milestone-badge.amber {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FCD34D;
+}
+
+.milestones-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.milestone-box {
+  background: #FFFFFF;
+  border: 1px solid #DCFCE7;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.milestone-box-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.milestone-step-pill {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.milestone-step-pill.completed {
+  background: #ECFDF5;
+  color: #065F46;
+}
+
+.milestone-step-pill.held {
+  background: #FFFBEB;
+  color: #92400E;
+}
+
+.milestone-step-pill.submitted {
+  background: #EFF6FF;
+  color: #1E40AF;
+}
+
+.milestone-status-tag {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.milestone-status-tag.green {
+  color: #059669;
+}
+
+.milestone-status-tag.amber {
+  color: #D97706;
+}
+
+.milestone-status-tag.blue {
+  color: #2563EB;
+}
+
+.milestone-name {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.milestone-amount {
+  font-size: 18px;
+  font-weight: 800;
+  color: #064E3B;
+  margin-bottom: 6px;
+  font-family: var(--font-heading, sans-serif);
+}
+
+.milestone-desc {
+  margin: 0 0 10px;
+  font-size: 11px;
+  color: #475569;
+  line-height: 1.35;
+  flex: 1;
+}
+
+.milestone-footer-meta {
+  font-size: 10px;
+  color: #64748B;
+  border-top: 1px solid #F1F5F9;
+  padding-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.milestone-footer-meta code {
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  background: #F8FAFC;
+  padding: 1px 4px;
+  border-radius: 3px;
+  border: 1px solid #E2E8F0;
+}
+
+.milestone-action-zone {
+  margin-top: auto;
+  border-top: 1px solid #F1F5F9;
+  padding-top: 8px;
+}
+
+.milestone-btn {
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: #0057FF;
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(0, 87, 255, 0.2);
+}
+
+.milestone-btn.release-btn {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
+}
+
+.milestone-waiting-notice {
+  font-size: 10.5px;
+  color: #92400E;
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  padding: 6px 10px;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.milestone-waiting-notice.blue {
+  color: #1E40AF;
+  background: #EFF6FF;
+  border-color: #BFDBFE;
 }

@@ -35,6 +35,34 @@ def version(db, d, n):
     if not o or o.version != n or o.rejected: raise HTTPException(409, 'Proposal changed or was rejected. Reload and review the current version.')
     return o
 
+def serialize_milestones(p, o):
+    if not p: return None
+    if p.milestones: return p.milestones
+    if p.status == 'paid':
+        amt = o.terms.get('amount_cents', 0) if o else 0
+        p1_amt = int(amt * 0.5)
+        p2_amt = amt - p1_amt
+        return {
+            'model': 'two_phase_escrow',
+            'phase1': {
+                'title': 'Phase 1: 50% Upfront Kickoff Deposit',
+                'percent': 50,
+                'amount_cents': p1_amt,
+                'status': 'completed',
+                'capture_id': p.capture_id,
+                'paid_at': p.paid_at
+            },
+            'phase2': {
+                'title': 'Phase 2: 50% Final Handoff Release',
+                'percent': 50,
+                'amount_cents': p2_amt,
+                'status': 'held',
+                'capture_id': None,
+                'paid_at': None
+            }
+        }
+    return None
+
 def view(db,d,role):
     offers = list(db.scalars(select(Offer).where(Offer.deal_id == d.id).order_by(Offer.version)))
     p = db.scalar(select(Payment).where(Payment.deal_id == d.id))
@@ -46,7 +74,7 @@ def view(db,d,role):
     if p: state = {'paid':'paid','failed':'payment failed','cancelled':'cancelled'}.get(p.status,'payment pending')
     result = {'id':d.id,'title':d.title,'client':d.client,'freelancer':d.freelancer,'asking_cents':d.asking_cents,'role':role,'status':state,'frozen':d.frozen,'cancelled':d.cancelled,'requirements':d.requirements,'extraction':d.extraction,'created_at':d.created_at,
         'offers':[{'id':x.id,'version':x.version,'terms':x.terms,'author':x.author,'rejected':x.rejected,'approvals':sorted(approved(db,x)),'created_at':x.created_at,'changes':compare(offers[i-1].terms,x.terms) if i else {}} for i,x in enumerate(offers)],
-        'payment': {'status':p.status,'order_id':p.order_id,'capture_id':p.capture_id,'offer_id':p.offer_id,'paid_at':p.paid_at,'approval_url':p.approval_url} if p else None,
+        'payment': {'status':p.status,'order_id':p.order_id,'capture_id':p.capture_id,'offer_id':p.offer_id,'paid_at':p.paid_at,'approval_url':p.approval_url,'milestones':serialize_milestones(p, o)} if p else None,
         'events':[{'id':e.id,'role':e.role,'message':e.message,'created_at':e.created_at} for e in db.scalars(select(Event).where(Event.deal_id==d.id).order_by(Event.created_at))]}
     if role=='freelancer': result['minimum_cents']=d.minimum_cents
     return result
@@ -233,9 +261,74 @@ def simulate_payment(deal_id:str,body:VersionAction,token=AUTH,db:Session=DB):
     sim_order='SANDBOX-SIM-'+secrets.token_hex(6).upper()
     sim_capture='CAPTURE-SIM-'+secrets.token_hex(6).upper()
     p.order_id=sim_order; p.capture_id=sim_capture; p.status='paid'; p.paid_at=now()
-    event(db,d.id,'system',f'PayPal Sandbox capture verified (simulation) for proposal v{o.version}.')
+    amount = o.terms.get('amount_cents', 0)
+    p1_amt = int(amount * 0.5)
+    p2_amt = amount - p1_amt
+    p.milestones = {
+        'model': 'two_phase_escrow',
+        'phase1': {
+            'title': 'Phase 1: 50% Upfront Kickoff Deposit',
+            'percent': 50,
+            'amount_cents': p1_amt,
+            'status': 'completed',
+            'capture_id': sim_capture,
+            'paid_at': p.paid_at,
+        },
+        'phase2': {
+            'title': 'Phase 2: 50% Final Handoff Release',
+            'percent': 50,
+            'amount_cents': p2_amt,
+            'status': 'held',
+            'capture_id': None,
+            'paid_at': None,
+        }
+    }
+    event(db,d.id,'system',f'PayPal Sandbox capture verified (Phase 1 deposit released, Phase 2 held) for proposal v{o.version}.')
     db.commit()
     return view(db,d,role)
+
+@router.post('/deals/{deal_id}/milestones/submit')
+def submit_milestone(deal_id: str, token=AUTH, db: Session = DB):
+    d, role = access(db, deal_id, token, True)
+    if role != 'freelancer':
+        raise HTTPException(403, 'Only the freelancer can submit deliverables for milestone review.')
+    p = db.scalar(select(Payment).where(Payment.deal_id == d.id))
+    if not p or p.status != 'paid':
+        raise HTTPException(409, 'Payment must be initiated before milestone submission.')
+    o = current(db, d)
+    m = dict(p.milestones or serialize_milestones(p, o) or {})
+    p2 = dict(m.get('phase2', {}))
+    if p2.get('status') == 'completed':
+        raise HTTPException(409, 'Milestone 2 has already been completed.')
+    p2['status'] = 'submitted'
+    p2['submitted_at'] = now()
+    m['phase2'] = p2
+    p.milestones = m
+    event(db, d.id, 'freelancer', 'Freelancer marked deliverables complete and submitted for Phase 2 handoff review.')
+    db.commit()
+    return view(db, d, role)
+
+@router.post('/deals/{deal_id}/milestones/release')
+def release_milestone(deal_id: str, token=AUTH, db: Session = DB):
+    d, role = access(db, deal_id, token, True)
+    if role != 'client':
+        raise HTTPException(403, 'Only the client can approve handoff and release milestone payment.')
+    p = db.scalar(select(Payment).where(Payment.deal_id == d.id))
+    if not p or p.status != 'paid':
+        raise HTTPException(409, 'Payment must be initiated before milestone release.')
+    o = current(db, d)
+    m = dict(p.milestones or serialize_milestones(p, o) or {})
+    p2 = dict(m.get('phase2', {}))
+    if p2.get('status') == 'completed':
+        raise HTTPException(409, 'Milestone 2 has already been released.')
+    p2['status'] = 'completed'
+    p2['capture_id'] = 'CAPTURE-SIM-P2-' + secrets.token_hex(6).upper()
+    p2['paid_at'] = now()
+    m['phase2'] = p2
+    p.milestones = m
+    event(db, d.id, 'client', 'Client approved final handoff. Phase 2 (50%) milestone capture executed via PayPal Sandbox.')
+    db.commit()
+    return view(db, d, role)
 
 @router.post('/demo/seed')
 def seed_demo(db: Session = DB):

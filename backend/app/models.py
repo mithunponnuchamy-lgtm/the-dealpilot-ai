@@ -49,6 +49,7 @@ class Payment(Base):
     approval_url: Mapped[str | None] = mapped_column(nullable=True)
     created_at: Mapped[str] = mapped_column(default=now)
     paid_at: Mapped[str | None] = mapped_column(nullable=True)
+    milestones: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 class Event(Base):
     __tablename__ = 'events'
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)

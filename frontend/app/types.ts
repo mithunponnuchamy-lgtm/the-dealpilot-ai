@@ -48,6 +48,26 @@ export type Deal = {
     offer_id: string;
     paid_at: string | null;
     approval_url?: string | null;
+    milestones?: {
+      model: string;
+      phase1: {
+        title: string;
+        percent: number;
+        amount_cents: number;
+        status: string;
+        capture_id?: string | null;
+        paid_at?: string | null;
+      };
+      phase2: {
+        title: string;
+        percent: number;
+        amount_cents: number;
+        status: string;
+        capture_id?: string | null;
+        submitted_at?: string | null;
+        paid_at?: string | null;
+      };
+    } | null;
   } | null;
   events: { id?: string; role: string; message: string; created_at: string }[];
 };

@@ -1,7 +1,7 @@
 'use client';
 import { useMemo } from 'react';
 import { Deal } from '../types';
-import { money } from '../context/DealPilotContext';
+import { money, useDealPilot } from '../context/DealPilotContext';
 
 export function AgreementCertificateModal({
   deal,
@@ -12,6 +12,7 @@ export function AgreementCertificateModal({
   offer: any;
   onClose: () => void;
 }) {
+  const { setShowDisputeShield } = useDealPilot();
   const isPaid = deal.status === 'paid' || deal.payment?.status === 'paid' || deal.payment?.status === 'completed';
 
   // Extract clean signer names
@@ -91,6 +92,17 @@ export function AgreementCertificateModal({
             <span className="cert-hint-subtle">Ready to print or export as PDF</span>
           </div>
           <div className="cert-btn-group">
+            <button
+              type="button"
+              className="shield-nav-btn"
+              onClick={() => {
+                onClose();
+                setShowDisputeShield(true);
+              }}
+              title="Open PayPal Dispute Shield Evidence Bundle"
+            >
+              <span>🛡️ Dispute Shield</span>
+            </button>
             <button
               type="button"
               className="primary print-btn"

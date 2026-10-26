@@ -108,6 +108,8 @@ interface DealPilotContextType {
   copyInvite: () => void;
   showCert: boolean;
   setShowCert: (b: boolean) => void;
+  showDisputeShield: boolean;
+  setShowDisputeShield: (b: boolean) => void;
   suggestion: Suggestion | null;
   setSuggestion: (s: Suggestion | null) => void;
   actionLoading: string;
@@ -172,6 +174,7 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
   const [showInviteLink, setShowInviteLink] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showCert, setShowCert] = useState(false);
+  const [showDisputeShield, setShowDisputeShield] = useState(false);
   const [suggestion, setSuggestion] = useState<Suggestion | null>(null);
 
   const [actionLoading, setActionLoading] = useState('');
@@ -677,6 +680,8 @@ export function DealPilotProvider({ children }: { children: ReactNode }) {
         copyInvite,
         showCert,
         setShowCert,
+        showDisputeShield,
+        setShowDisputeShield,
         suggestion,
         setSuggestion,
         actionLoading,

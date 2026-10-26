@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useDealPilot, money } from '@/context/DealPilotContext';
 import { TaskActionBar } from '@/components/TaskActionBar';
+import { MultiCurrencyPreview } from '@/components/MultiCurrencyPreview';
+import { MilestoneEscrowCard } from '@/components/MilestoneEscrowCard';
 
 export default function PaymentPage({
   params,
@@ -24,6 +26,7 @@ export default function PaymentPage({
     actionLoading,
     configured,
     setShowCert,
+    setShowDisputeShield,
   } = useDealPilot();
 
   if (!deal) return null;
@@ -141,17 +144,44 @@ export default function PaymentPage({
         )}
 
         {isPaid && (
-          <div style={{ marginTop: '20px' }}>
+          <div className="paid-action-buttons" style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <button
               type="button"
               className="primary"
-              style={{ width: '100%', padding: '12px' }}
+              style={{ width: '100%', padding: '12px', fontSize: '13.5px', fontWeight: 700 }}
               onClick={() => setShowCert(true)}
             >
               📄 View Official Agreement & Payment Certificate
             </button>
+            <button
+              type="button"
+              className="shield-trigger-btn"
+              style={{
+                width: '100%',
+                padding: '12px',
+                fontSize: '13.5px',
+                fontWeight: 700,
+                background: 'linear-gradient(135deg, #065F46 0%, #047857 100%)',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                boxShadow: '0 2px 8px rgba(6, 95, 70, 0.25)',
+              }}
+              onClick={() => setShowDisputeShield(true)}
+            >
+              <span>🛡️ Export PayPal Dispute Shield Bundle</span>
+            </button>
           </div>
         )}
+
+        {isPaid && <MilestoneEscrowCard />}
+
+        {offer && <MultiCurrencyPreview amountCents={offer.terms.amount_cents} />}
 
         {role === 'client' && !isPaid && isBothApproved && (
           <div className="stack" style={{ marginTop: '18px' }}>

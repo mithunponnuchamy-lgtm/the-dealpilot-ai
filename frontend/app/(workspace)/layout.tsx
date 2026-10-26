@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useDealPilot, getResumeRoute } from '@/context/DealPilotContext';
 import { SearchIcon, BellIcon } from '@/components/Icons';
 import { AgreementCertificateModal } from '@/components/AgreementCertificateModal';
+import { DisputeShieldModal } from '@/components/DisputeShieldModal';
 import { NotificationToaster } from '@/components/NotificationToaster';
 import { NotificationPanel } from '@/components/NotificationPanel';
 import { JudgeDemoBar } from '@/components/JudgeDemoBar';
@@ -22,6 +23,8 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
     actionLoading,
     showCert,
     setShowCert,
+    showDisputeShield,
+    setShowDisputeShield,
     setActiveDealId,
     setNavDirection,
     unreadNotificationsCount,
@@ -248,6 +251,14 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
           deal={deal}
           offer={offer}
           onClose={() => setShowCert(false)}
+        />
+      )}
+
+      {showDisputeShield && deal && offer && (
+        <DisputeShieldModal
+          deal={deal}
+          offer={offer}
+          onClose={() => setShowDisputeShield(false)}
         />
       )}
 
