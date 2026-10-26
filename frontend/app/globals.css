@@ -1350,41 +1350,110 @@ hr {
 }
 
 /* ==========================================================================
-   AGREEMENT CERTIFICATE MODAL
+   AGREEMENT CERTIFICATE MODAL & PRINTABLE EXECUTION RECORD
    ========================================================================== */
+.cert-backdrop {
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+}
+
 .cert-modal {
-  width: 740px;
-  max-width: 95vw;
-  max-height: 92vh;
+  width: 820px;
+  max-width: 96vw;
+  max-height: 94vh;
   padding: 0;
   border-radius: var(--radius-lg);
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 25px 60px -15px rgba(0, 20, 60, 0.35);
+  border: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 .cert-actions-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 24px;
-  background: #F8FAFD;
+  padding: 12px 24px;
+  background: #F8FAFC;
   border-bottom: 1px solid var(--line);
 }
 
+.cert-action-hints {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cert-hint-pill {
+  font-size: 11px;
+  font-weight: 700;
+  color: #0057FF;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  padding: 3px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cert-hint-subtle {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.cert-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cert-btn-group .print-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  background: #0057FF;
+  color: #FFFFFF;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 87, 255, 0.25);
+  transition: all 0.15s ease;
+}
+
+.cert-btn-group .print-btn:hover {
+  background: #0047D4;
+}
+
+.cert-btn-group .close-btn {
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  background: #FFFFFF;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
 .cert-document {
-  padding: 32px;
+  padding: 28px 34px;
   overflow-y: auto;
-  background: var(--white);
+  background: #FFFFFF;
+  color: #0F172A;
+  font-family: var(--font-body, 'Inter', -apple-system, sans-serif);
+  line-height: 1.45;
 }
 
 .cert-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  border-bottom: 2px solid var(--navy);
-  padding-bottom: 18px;
-  margin-bottom: 22px;
+  align-items: flex-start;
+  border-bottom: 2px solid #002C66;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
 }
 
 .cert-brand {
@@ -1393,149 +1462,566 @@ hr {
   gap: 12px;
 }
 
-.cert-brand h2 {
+.cert-logo-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0057FF 0%, #002C66 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-weight: 800;
+  font-size: 18px;
+  box-shadow: 0 4px 10px rgba(0, 87, 255, 0.25);
+  flex-shrink: 0;
+}
+
+.cert-brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.cert-brand-title {
   margin: 0;
   font-size: 22px;
+  font-weight: 800;
+  color: #002C66;
+  letter-spacing: -0.5px;
+  font-family: var(--font-heading, sans-serif);
+}
+
+.cert-brand-ai {
+  color: #0057FF;
+  font-weight: 800;
+  font-size: 16px;
+  margin-left: 2px;
+}
+
+.cert-brand-tagline {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #64748B;
+  font-weight: 600;
+  margin-top: 1px;
+}
+
+.cert-header-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
 }
 
 .cert-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 11px;
-  font-weight: 700;
-  padding: 5px 12px;
-  border-radius: var(--radius-pill);
-  letter-spacing: 0.5px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 999px;
+  letter-spacing: 0.4px;
 }
 
 .cert-status-badge.paid {
-  background: var(--green-bg);
-  color: var(--green);
-  border: 1px solid var(--green-line);
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
 }
 
 .cert-status-badge.approved {
-  background: var(--amber-bg);
-  color: var(--amber);
-  border: 1px solid var(--amber-line);
+  background: #FFFBEB;
+  color: #92400E;
+  border: 1px solid #FDE68A;
 }
 
-.cert-deal-meta {
+.status-dot {
+  font-size: 8px;
+}
+
+.cert-serial-line {
+  font-size: 10px;
+  color: #64748B;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cert-serial-val {
+  font-family: var(--font-mono, monospace);
+  color: #1E293B;
+  font-weight: 700;
+}
+
+.cert-serial-sep {
+  color: #CBD5E1;
+}
+
+.cert-deal-meta-strip {
   display: grid;
-  grid-template-columns: 2fr 1.5fr 1fr;
-  gap: 16px;
-  background: #F8FAFD;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  padding: 14px;
-  margin-bottom: 22px;
+  grid-template-columns: 2.2fr 1.8fr 1fr;
+  gap: 12px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  align-items: center;
 }
 
-.cert-deal-meta h3 {
+.cert-kicker {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  color: #64748B;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.cert-project-title {
   margin: 0;
-  font-size: 16px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0F172A;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cert-id-code {
+  font-family: var(--font-mono, monospace);
+  font-size: 10.5px;
+  color: #334155;
+  background: #FFFFFF;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #E2E8F0;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.cert-version-pill {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0057FF;
+  white-space: nowrap;
 }
 
 .cert-parties-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 22px;
-}
-
-.cert-party-box {
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  padding: 14px;
-  background: #FAFCFF;
-}
-
-.cert-role-tag {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--muted);
-  letter-spacing: 1px;
-}
-
-.cert-party-box h4 {
-  margin: 6px 0;
-  font-size: 15px;
-  color: var(--ink);
-}
-
-.cert-approved-check {
-  margin: 0;
-  font-size: 12px;
-  color: var(--green);
-  font-weight: 600;
-}
-
-.cert-section {
-  border-top: 1px solid var(--line-light);
-  padding: 16px 0;
-}
-
-.cert-section h4 {
-  margin: 0 0 10px;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: var(--muted);
-}
-
-.cert-price-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
+  gap: 12px;
   margin-bottom: 12px;
 }
 
-.cert-amount {
-  font-size: 26px;
-  font-weight: 700;
-  color: var(--navy);
-  font-variant-numeric: tabular-nums;
-  font-family: var(--font-heading);
+.cert-party-box {
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: #FAFCFF;
 }
 
-.cert-deliverables, .cert-exclusions {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.cert-party-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.cert-role-tag {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #64748B;
+  letter-spacing: 0.6px;
+}
+
+.cert-approved-pill {
+  font-size: 10px;
+  font-weight: 700;
+  color: #059669;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.cert-party-name {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cert-signature-area {
+  border-top: 1px dashed #CBD5E1;
+  padding-top: 4px;
+  margin-top: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.cert-signature-script {
+  font-family: 'Brush Script MT', 'Dancing Script', 'Caveat', cursive, serif;
+  font-size: 18px;
+  color: #1E3A8A;
+  letter-spacing: 0.5px;
+}
+
+.cert-signature-caption {
+  font-size: 9px;
+  color: #64748B;
+  font-weight: 500;
+}
+
+.cert-party-footer {
+  font-size: 9.5px;
+  color: #64748B;
+  margin-top: 4px;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.cert-bullet {
+  color: #CBD5E1;
+}
+
+.cert-terms-block {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.cert-price-card {
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: #FFFFFF;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  justify-content: space-between;
+}
+
+.cert-amount-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  white-space: nowrap;
+  margin: 2px 0 4px;
+}
+
+.cert-currency-symbol {
+  font-size: 18px;
+  font-weight: 700;
+  color: #002C66;
+}
+
+.cert-amount-num {
+  font-size: 24px;
+  font-weight: 800;
+  color: #002C66;
+  letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-heading, sans-serif);
+}
+
+.cert-currency-code {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748B;
+  margin-left: 2px;
+}
+
+.cert-payout-rule {
+  font-size: 11px;
+  color: #334155;
+  line-height: 1.35;
+  border-top: 1px solid #F1F5F9;
+  padding-top: 6px;
+  margin-top: 2px;
+}
+
+.cert-payout-label {
+  font-weight: 600;
+  color: #64748B;
+  margin-right: 4px;
+}
+
+.cert-timeline-card {
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: #F8FAFC;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.cert-timeline-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.cert-timeline-value {
   font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
 }
 
-.cert-deliverables li { color: var(--ink); }
-.cert-exclusions li { color: var(--muted); }
-
-.cert-payment-box {
-  background: #F7FCF9;
-  border: 1px solid var(--green-line);
-  border-radius: var(--radius-sm);
-  padding: 14px;
-  margin-top: 12px;
+.cert-timeline-note {
+  font-size: 9.5px;
+  color: #64748B;
 }
 
-.cert-payment-box h4 {
-  color: var(--green);
+.cert-timeline-divider {
+  height: 1px;
+  background: #E2E8F0;
+  margin: 4px 0;
+}
+
+.cert-scope-ledger {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.cert-scope-col {
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #FFFFFF;
+}
+
+.cert-scope-col.in-scope {
+  border-left: 3px solid #10B981;
+}
+
+.cert-scope-col.out-of-scope {
+  border-left: 3px solid #94A3B8;
+  background: #FAFAFA;
+}
+
+.cert-scope-title-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.cert-scope-title-bar h4 {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #334155;
+}
+
+.cert-scope-dot {
+  font-size: 8px;
+}
+
+.cert-scope-dot.green {
+  color: #10B981;
+}
+
+.cert-scope-dot.gray {
+  color: #94A3B8;
+}
+
+.cert-scope-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 11px;
+  line-height: 1.35;
+  color: #1E293B;
+}
+
+.cert-scope-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.cert-scope-item.empty {
+  color: #94A3B8;
+  font-style: italic;
+}
+
+.cert-check-icon {
+  color: #059669;
+  font-weight: 800;
+  font-size: 11px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cert-cross-icon {
+  color: #94A3B8;
+  font-weight: 800;
+  font-size: 11px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cert-payment-ledger {
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+}
+
+.cert-pay-ledger-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #DCFCE7;
+}
+
+.cert-pay-ledger-brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.paypal-p {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: #003087;
+  color: #FFFFFF;
+  font-weight: 900;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.paypal-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #065F46;
+}
+
+.cert-settlement-status {
+  font-size: 10px;
+  font-weight: 800;
+  color: #047857;
+  background: #DCFCE7;
+  border: 1px solid #86EFAC;
+  padding: 2px 8px;
+  border-radius: 999px;
 }
 
 .cert-pay-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
+  grid-template-columns: 1.2fr 1.2fr 1.1fr 1.3fr;
+  gap: 10px;
+}
+
+.cert-pay-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cert-pay-cell small {
+  font-size: 8.5px;
+  font-weight: 700;
+  color: #047857;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.cert-pay-cell code {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: #064E3B;
+  background: #FFFFFF;
+  padding: 2px 5px;
+  border-radius: 4px;
+  border: 1px solid #A7F3D0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.cert-pay-cell b {
+  font-size: 10.5px;
+  color: #064E3B;
+}
+
+.security-digest {
+  font-size: 9px !important;
+  color: #065F46 !important;
 }
 
 .cert-footer {
-  border-top: 1px solid var(--line-light);
-  margin-top: 24px;
-  padding-top: 14px;
+  border-top: 1px solid #E2E8F0;
+  padding-top: 8px;
+  margin-top: 4px;
+  font-size: 9.5px;
+  color: #64748B;
+}
+
+.cert-footer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  font-weight: 700;
+  font-size: 9.5px;
+  letter-spacing: 0.5px;
+  color: #475569;
+}
+
+.cert-seal-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cert-shield-icon {
   font-size: 11px;
-  color: var(--muted);
-  text-align: center;
+}
+
+.cert-footer-page-tag {
+  font-size: 9px;
+  color: #94A3B8;
+  font-weight: 600;
+}
+
+.cert-legal-text {
+  margin: 0;
+  line-height: 1.35;
+  font-size: 8.5px;
+  color: #94A3B8;
+  text-align: justify;
 }
 
 /* ==========================================================================
@@ -2370,23 +2856,147 @@ hr {
 /* ==========================================================================
    PRINT STYLES FOR AGREEMENT CERTIFICATE
    ========================================================================== */
+@page {
+  size: A4 portrait;
+  margin: 8mm 10mm;
+}
+
 @media print {
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #FFFFFF !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
   body * {
     visibility: hidden;
   }
-  #printable-certificate, #printable-certificate * {
+
+  #printable-certificate,
+  #printable-certificate * {
     visibility: visible;
   }
+
   #printable-certificate {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    padding: 20px;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
     background: #FFFFFF !important;
+    box-shadow: none !important;
+    border: none !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
-  .cert-actions-top, .modal-backdrop {
+
+  .cert-actions-top,
+  .sidebar,
+  .client-mode-bar,
+  .judge-demo-bar,
+  .notification-toaster,
+  .notification-panel,
+  .task-action-bar,
+  .cert-hint-pill,
+  body > header,
+  body > footer,
+  .main-content > footer {
+    display: none !important;
     background: transparent !important;
+  }
+
+  .cert-header {
+    display: flex !important;
+    visibility: visible !important;
+    margin-bottom: 8px !important;
+    padding-bottom: 8px !important;
+  }
+
+  .cert-footer {
+    display: block !important;
+    visibility: visible !important;
+    margin-top: 6px !important;
+    padding-top: 6px !important;
+  }
+
+  .modal-backdrop.cert-backdrop {
+    position: static !important;
+    display: block !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    inset: auto !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .cert-modal {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+
+  /* Micro-tuning to strictly fit within 1 standard A4 sheet */
+  .cert-header {
+    margin-bottom: 8px !important;
+    padding-bottom: 8px !important;
+  }
+
+  .cert-deal-meta-strip {
+    margin-bottom: 8px !important;
+    padding: 6px 10px !important;
+  }
+
+  .cert-parties-grid {
+    margin-bottom: 8px !important;
+    gap: 8px !important;
+  }
+
+  .cert-party-box {
+    padding: 6px 10px !important;
+  }
+
+  .cert-terms-block {
+    margin-bottom: 8px !important;
+    gap: 8px !important;
+  }
+
+  .cert-price-card,
+  .cert-timeline-card {
+    padding: 6px 10px !important;
+  }
+
+  .cert-scope-ledger {
+    margin-bottom: 8px !important;
+    gap: 8px !important;
+  }
+
+  .cert-scope-col {
+    padding: 6px 10px !important;
+  }
+
+  .cert-payment-ledger {
+    margin-bottom: 8px !important;
+    padding: 6px 10px !important;
+  }
+
+  .cert-footer {
+    margin-top: 4px !important;
+    padding-top: 4px !important;
   }
 }
 
