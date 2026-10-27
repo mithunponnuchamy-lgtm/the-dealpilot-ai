@@ -10,8 +10,9 @@ export default function EntryPage() {
   const router = useRouter();
   const { role, login, health, deals, actionLoading, error, apiUrl, updateApiUrl, loadJudgeDemo } = useDealPilot();
 
-  const [entry, setEntry] = useState('');
-  const [showCode, setShowCode] = useState(false);
+  const DEMO_KEY = 'l23kTxGL6jBc21F0AMTvB2A6VYJfzco0VcqBqsZxTlbz2qGi';
+  const [entry, setEntry] = useState(DEMO_KEY);
+  const [showCode, setShowCode] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -29,10 +30,10 @@ export default function EntryPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!entry.trim()) return;
+    const tokenToUse = (entry.trim() || DEMO_KEY);
     setIsSubmitting(true);
     try {
-      const { dealId, role: newRole } = await login(entry.trim());
+      const { dealId, role: newRole } = await login(tokenToUse);
       if (dealId && newRole === 'client') {
         const found = deals.find(d => d.id === dealId);
         const route = found ? getResumeRoute(found, newRole) : `/deals/${dealId}/review`;
