@@ -342,94 +342,94 @@ def seed_demo(db: Session = DB):
             db.execute(delete(Payment).where(Payment.deal_id == old_d.id))
             db.execute(delete(Offer).where(Offer.deal_id == old_d.id))
             db.execute(delete(Event).where(Event.deal_id == old_d.id))
-            db.delete(old_d)
+            db.execute(delete(Deal).where(Deal.id == old_d.id))
         db.commit()
 
-    client_token = secrets.token_urlsafe(32)
-    deal = Deal(
-        title=demo_title,
-        client='Acme Payments Corp (Alex Rivera)',
-        freelancer='Sarah Chen (Senior UI/UX Specialist)',
-        asking_cents=350000,
-        minimum_cents=280000,
-        current_version=1,
-        frozen=False,
-        cancelled=False,
-        requirements=(
-            'Design high-fidelity iOS & Android checkout flows with integrated PayPal Sandbox '
-            'payment modal, complete Figma component design system (40+ components), and '
-            'developer handoff specifications with micro-interaction prototypes.'
-        ),
-        extraction={
-            'description': 'Design high-fidelity iOS & Android checkout flows with integrated PayPal Sandbox modal, component design system, and developer handoff specs.',
-            'deliverables': [
-                'High-fidelity Figma UI prototypes for iOS & Android checkout flows',
-                'Complete design system with 40+ responsive payment & wallet components',
-                'PayPal Sandbox checkout interactive prototype & developer handoff specs'
-            ],
-            'exclusions': [
-                'Native iOS/Android Swift/Kotlin production backend deployment',
-                'Merchant account registration and regulatory compliance filing'
-            ],
-            'budget_usd': 3500,
-            'deadline': '14 days',
-            'missing_information': [
-                'Do you require dark mode variants for the payment flow screens?',
-                'Will the Figma handoff require tokenized style variables for Tailwind CSS?'
-            ],
-            'clarification_questions': [
-                'Do you require dark mode variants for the payment flow screens?',
-                'Will the Figma handoff require tokenized style variables for Tailwind CSS?'
-            ],
-            'assumptions': [
-                'Client provides the brand guidelines and PayPal Sandbox credentials.'
-            ]
-        },
-        client_hash=digest(client_token)
-    )
-    db.add(deal)
-    db.flush()
+        client_token = secrets.token_urlsafe(32)
+        deal = Deal(
+            title=demo_title,
+            client='Acme Payments Corp (Alex Rivera)',
+            freelancer='Sarah Chen (Senior UI/UX Specialist)',
+            asking_cents=350000,
+            minimum_cents=280000,
+            current_version=1,
+            frozen=False,
+            cancelled=False,
+            requirements=(
+                'Design high-fidelity iOS & Android checkout flows with integrated PayPal Sandbox '
+                'payment modal, complete Figma component design system (40+ components), and '
+                'developer handoff specifications with micro-interaction prototypes.'
+            ),
+            extraction={
+                'description': 'Design high-fidelity iOS & Android checkout flows with integrated PayPal Sandbox modal, component design system, and developer handoff specs.',
+                'deliverables': [
+                    'High-fidelity Figma UI prototypes for iOS & Android checkout flows',
+                    'Complete design system with 40+ responsive payment & wallet components',
+                    'PayPal Sandbox checkout interactive prototype & developer handoff specs'
+                ],
+                'exclusions': [
+                    'Native iOS/Android Swift/Kotlin production backend deployment',
+                    'Merchant account registration and regulatory compliance filing'
+                ],
+                'budget_usd': 3500,
+                'deadline': '14 days',
+                'missing_information': [
+                    'Do you require dark mode variants for the payment flow screens?',
+                    'Will the Figma handoff require tokenized style variables for Tailwind CSS?'
+                ],
+                'clarification_questions': [
+                    'Do you require dark mode variants for the payment flow screens?',
+                    'Will the Figma handoff require tokenized style variables for Tailwind CSS?'
+                ],
+                'assumptions': [
+                    'Client provides the brand guidelines and PayPal Sandbox credentials.'
+                ]
+            },
+            client_hash=digest(client_token)
+        )
+        db.add(deal)
+        db.flush()
 
-    offer = Offer(
-        deal_id=deal.id,
-        version=1,
-        terms={
-            'deliverables': [
-                'High-fidelity Figma UI prototypes for iOS & Android checkout flows',
-                'Complete design system with 40+ responsive payment & wallet components',
-                'PayPal Sandbox checkout interactive prototype & developer handoff specs'
-            ],
-            'exclusions': [
-                'Native iOS/Android Swift/Kotlin production backend deployment',
-                'Merchant account registration and regulatory compliance filing'
-            ],
-            'amount_cents': 350000,
-            'currency': 'USD',
-            'delivery_days': 14,
-            'revisions': 2,
-            'payment_terms': '50% deposit via PayPal Sandbox upon proposal approval; 50% upon final delivery.'
-        },
-        author='freelancer',
-        rejected=False
-    )
-    db.add(offer)
-    db.flush()
+        offer = Offer(
+            deal_id=deal.id,
+            version=1,
+            terms={
+                'deliverables': [
+                    'High-fidelity Figma UI prototypes for iOS & Android checkout flows',
+                    'Complete design system with 40+ responsive payment & wallet components',
+                    'PayPal Sandbox checkout interactive prototype & developer handoff specs'
+                ],
+                'exclusions': [
+                    'Native iOS/Android Swift/Kotlin production backend deployment',
+                    'Merchant account registration and regulatory compliance filing'
+                ],
+                'amount_cents': 350000,
+                'currency': 'USD',
+                'delivery_days': 14,
+                'revisions': 2,
+                'payment_terms': '50% deposit via PayPal Sandbox upon proposal approval; 50% upon final delivery.'
+            },
+            author='freelancer',
+            rejected=False
+        )
+        db.add(offer)
+        db.flush()
 
-    # Pre-approve by freelancer so it is awaiting client approval (the ideal testing state)
-    approval = Approval(offer_id=offer.id, role='freelancer')
-    db.add(approval)
+        # Pre-approve by freelancer so it is awaiting client approval (the ideal testing state)
+        approval = Approval(offer_id=offer.id, role='freelancer')
+        db.add(approval)
 
-    events = [
-        Event(deal_id=deal.id, role='freelancer', message='Deal created with $3,500 asking price and $2,800 private minimum.'),
-        Event(deal_id=deal.id, role='freelancer', message='Requirements saved and structured deliverables extracted with Gemini AI.'),
-        Event(deal_id=deal.id, role='client', message='Hi Sarah, excited to work together! Can we ensure the PayPal checkout screens match our new brand palette?'),
-        Event(deal_id=deal.id, role='freelancer', message='Absolutely Alex. I have included the complete design system and responsive mobile flows with PayPal Sandbox verification.'),
-        Event(deal_id=deal.id, role='freelancer', message='Proposal Version 1 submitted for $3,500 USD (14 days delivery, 2 revision rounds).'),
-        Event(deal_id=deal.id, role='freelancer', message='Sarah Chen approved Proposal Version 1. Waiting for Acme Payments Corp approval.')
-    ]
-    for ev in events:
-        db.add(ev)
-    db.commit()
+        events = [
+            Event(deal_id=deal.id, role='freelancer', message='Deal created with $3,500 asking price and $2,800 private minimum.'),
+            Event(deal_id=deal.id, role='freelancer', message='Requirements saved and structured deliverables extracted with Gemini AI.'),
+            Event(deal_id=deal.id, role='client', message='Hi Sarah, excited to work together! Can we ensure the PayPal checkout screens match our new brand palette?'),
+            Event(deal_id=deal.id, role='freelancer', message='Absolutely Alex. I have included the complete design system and responsive mobile flows with PayPal Sandbox verification.'),
+            Event(deal_id=deal.id, role='freelancer', message='Proposal Version 1 submitted for $3,500 USD (14 days delivery, 2 revision rounds).'),
+            Event(deal_id=deal.id, role='freelancer', message='Sarah Chen approved Proposal Version 1. Waiting for Acme Payments Corp approval.')
+        ]
+        for ev in events:
+            db.add(ev)
+        db.commit()
 
         return {
             'deal': view(db, deal, 'freelancer'),
