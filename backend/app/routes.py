@@ -334,15 +334,16 @@ def release_milestone(deal_id: str, token=AUTH, db: Session = DB):
 def seed_demo(db: Session = DB):
     """Seed or reset the official Hackathon Judge showcase deal."""
     from . import config
-    demo_title = 'FinTech Mobile App Redesign & Design System'
-    existing = db.scalars(select(Deal).where(Deal.title == demo_title)).all()
-    for old_d in existing:
-        db.execute(delete(Approval).where(Approval.offer_id.in_(select(Offer.id).where(Offer.deal_id == old_d.id))))
-        db.execute(delete(Payment).where(Payment.deal_id == old_d.id))
-        db.execute(delete(Offer).where(Offer.deal_id == old_d.id))
-        db.execute(delete(Event).where(Event.deal_id == old_d.id))
-        db.delete(old_d)
-    db.commit()
+    try:
+        demo_title = 'FinTech Mobile App Redesign & Design System'
+        existing = db.scalars(select(Deal).where(Deal.title == demo_title)).all()
+        for old_d in existing:
+            db.execute(delete(Approval).where(Approval.offer_id.in_(select(Offer.id).where(Offer.deal_id == old_d.id))))
+            db.execute(delete(Payment).where(Payment.deal_id == old_d.id))
+            db.execute(delete(Offer).where(Offer.deal_id == old_d.id))
+            db.execute(delete(Event).where(Event.deal_id == old_d.id))
+            db.delete(old_d)
+        db.commit()
 
     client_token = secrets.token_urlsafe(32)
     deal = Deal(
@@ -430,12 +431,15 @@ def seed_demo(db: Session = DB):
         db.add(ev)
     db.commit()
 
-    return {
-        'deal': view(db, deal, 'freelancer'),
-        'deal_id': deal.id,
-        'client_token': client_token,
-        'freelancer_token': config.WORKSPACE_TOKEN
-    }
+        return {
+            'deal': view(db, deal, 'freelancer'),
+            'deal_id': deal.id,
+            'client_token': client_token,
+            'freelancer_token': config.WORKSPACE_TOKEN
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(500, detail=f"Seed error: {e}")
 
 @router.get('/deals/{deal_id}/client-token')
 def get_or_create_client_token(deal_id: str, token=AUTH, db: Session = DB):

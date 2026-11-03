@@ -24,6 +24,16 @@ from .routes import router
 @asynccontextmanager
 async def lifespan(app):
     Base.metadata.create_all(engine)
+    with engine.connect() as conn:
+        try:
+            conn.execute(text('ALTER TABLE payments ADD COLUMN IF NOT EXISTS milestones JSON'))
+            conn.commit()
+        except Exception:
+            try:
+                conn.execute(text('ALTER TABLE payments ADD COLUMN milestones JSON'))
+                conn.commit()
+            except Exception:
+                pass
     yield
 app.router.lifespan_context = lifespan
 app.include_router(router)
