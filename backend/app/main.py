@@ -12,7 +12,12 @@ async def lifespan(app: FastAPI):
     Base.metadata.create_all(engine)
     try:
         with engine.begin() as conn:
-            conn.execute(text('ALTER TABLE payments ADD COLUMN IF NOT EXISTS milestones JSON'))
+            if engine.dialect.name == 'postgresql':
+                conn.execute(text('ALTER TABLE payments ADD COLUMN IF NOT EXISTS milestones JSON'))
+            elif engine.dialect.name == 'sqlite':
+                cols = [row[1] for row in conn.execute(text('PRAGMA table_info(payments)')).fetchall()]
+                if 'milestones' not in cols:
+                    conn.execute(text('ALTER TABLE payments ADD COLUMN milestones JSON'))
     except Exception as e:
         print('Migration notice:', e)
     yield

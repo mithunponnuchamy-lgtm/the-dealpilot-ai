@@ -184,51 +184,98 @@ export default function PaymentPage({
         {offer && <MultiCurrencyPreview amountCents={offer.terms.amount_cents} />}
 
         {role === 'client' && !isPaid && isBothApproved && (
-          <div className="stack" style={{ marginTop: '18px' }}>
-            {configured.paypal_configured ? (
-              <>
+          <div className="stack" style={{ marginTop: '18px', gap: '14px' }}>
+            {configured.paypal_configured && (
+              <div className="stack" style={{ gap: '8px' }}>
                 <button
                   className="paypal"
                   disabled={Boolean(actionLoading) || deal.cancelled}
                   onClick={() => void handlePayPalCheckout()}
                 >
-                  {deal.payment ? 'Resume PayPal checkout' : 'Continue to PayPal'}
+                  {deal.payment?.order_id ? 'Resume PayPal checkout' : 'Continue to PayPal'}
                 </button>
-                {deal.payment?.order_id && (
-                  <div className="actions">
-                    <button
-                      disabled={Boolean(actionLoading)}
-                      onClick={() =>
-                        void runAction('Verifying payment…', () => mutateDeal('/payment/verify'))
-                      }
-                    >
-                      Verify & complete payment
-                    </button>
-                    <button
-                      disabled={Boolean(actionLoading)}
-                      onClick={() =>
-                        void runAction('Cancelling checkout…', () => mutateDeal('/payment/cancel'))
-                      }
-                    >
-                      Record checkout cancellation
-                    </button>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="stack">
+                <small>Connects directly to PayPal Sandbox checkout.</small>
+              </div>
+            )}
+
+            {deal.payment?.order_id && (
+              <div className="actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <button
-                  className="primary sim-pay-btn"
-                  disabled={Boolean(actionLoading) || deal.cancelled}
-                  onClick={() => void handleSimulatePayment()}
+                  disabled={Boolean(actionLoading)}
+                  onClick={() =>
+                    void runAction('Verifying payment…', () => mutateDeal('/payment/verify'))
+                  }
                 >
-                  ⚡ Complete with Sandbox Simulator (Demo Mode)
+                  Verify & complete payment
                 </button>
-                <small>
-                  Simulates verified PayPal Sandbox capture. Real credentials can be configured in <code>backend/.env</code>.
+                <button
+                  disabled={Boolean(actionLoading)}
+                  onClick={() =>
+                    void runAction('Cancelling checkout…', () => mutateDeal('/payment/cancel'))
+                  }
+                >
+                  Record checkout cancellation
+                </button>
+              </div>
+            )}
+
+            {deal.payment && !deal.payment.order_id && (
+              <div className="actions" style={{ display: 'flex', gap: '10px', alignItems: 'center', background: '#FFF7ED', border: '1px solid #FED7AA', padding: '10px 14px', borderRadius: '8px' }}>
+                <button
+                  type="button"
+                  className="secondary"
+                  disabled={Boolean(actionLoading)}
+                  onClick={() =>
+                    void runAction('Resetting checkout…', () => mutateDeal('/payment/cancel'))
+                  }
+                >
+                  🔄 Reset Checkout Attempt
+                </button>
+                <small style={{ color: '#9A3412', margin: 0 }}>
+                  Order creation was interrupted. Reset to retry checkout or use the instant simulator below.
                 </small>
               </div>
             )}
+
+            <div
+              className="stack"
+              style={{
+                background: '#F0FDF4',
+                border: '1px solid #BBF7D0',
+                borderRadius: '8px',
+                padding: '14px',
+                marginTop: configured.paypal_configured ? '6px' : '0',
+                gap: '8px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                <div>
+                  <b style={{ color: '#166534', fontSize: '13px' }}>⚡ Instant Sandbox Simulator (Judge & Demo Mode)</b>
+                  <p style={{ margin: '3px 0 0', fontSize: '12px', color: '#15803D' }}>
+                    Simulates verified PayPal capture, locks version terms, and initiates two-phase milestone escrow instantly.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="primary sim-pay-btn"
+                  style={{
+                    background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    fontWeight: 700,
+                    padding: '9px 18px',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)',
+                    whiteSpace: 'nowrap',
+                  }}
+                  disabled={Boolean(actionLoading) || deal.cancelled}
+                  onClick={() => void handleSimulatePayment()}
+                >
+                  ⚡ Complete Instant Verification
+                </button>
+              </div>
+            </div>
           </div>
         )}
 

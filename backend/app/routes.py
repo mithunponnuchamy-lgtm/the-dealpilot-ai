@@ -79,10 +79,17 @@ def view(db,d,role):
     if role=='freelancer': result['minimum_cents']=d.minimum_cents
     return result
 
+def is_paypal_configured() -> bool:
+    cid = os.getenv('PAYPAL_CLIENT_ID', '').strip()
+    sec = os.getenv('PAYPAL_CLIENT_SECRET', '').strip()
+    if not cid or not sec or cid.lower() in ('sandbox-demo', 'demo', 'test', 'none', '') or sec.lower() in ('sandbox-demo', 'demo', 'test', 'none', ''):
+        return False
+    return True
+
 @router.get('/session')
 def session(token=AUTH,db:Session=DB):
     ai_info = ai.get_provider_info()
-    paypal_ready = bool(os.getenv('PAYPAL_CLIENT_ID') and os.getenv('PAYPAL_CLIENT_SECRET'))
+    paypal_ready = is_paypal_configured()
     if is_owner(token):
         return {
             'role': 'freelancer',
@@ -198,7 +205,7 @@ def checkout(deal_id:str,body:VersionAction,token=AUTH,db:Session=DB):
     if d.cancelled: raise HTTPException(409,'Deal cancelled.')
     o=version(db,d,body.version)
     if approved(db,o) != {'client','freelancer'}: raise HTTPException(409,'Both people must approve this version first.')
-    if not os.getenv('PAYPAL_CLIENT_ID') or not os.getenv('PAYPAL_CLIENT_SECRET'): raise HTTPException(503,'Configure PayPal Sandbox credentials on the backend first.')
+    if not is_paypal_configured(): raise HTTPException(503,'Configure valid PayPal Sandbox credentials on the backend first, or use the Sandbox Simulator.')
     p=db.scalar(select(Payment).where(Payment.deal_id==d.id))
     if not p:
         p=Payment(deal_id=d.id,offer_id=o.id); db.add(p); d.frozen=True
@@ -236,7 +243,11 @@ def cancel_payment(deal_id:str,token=AUTH,db:Session=DB):
     d,role=access(db,deal_id,token,True)
     if role!='client': raise HTTPException(403,'Client access required.')
     p=db.scalar(select(Payment).where(Payment.deal_id==d.id))
-    if not p or not p.order_id: raise HTTPException(409,'No checkout to cancel.')
+    if not p: raise HTTPException(409,'No checkout to cancel.')
+    if not p.order_id or p.status == 'creating':
+        db.delete(p)
+        db.commit()
+        return view(db, d, role)
     # A browser cancellation is NOT evidence that PayPal did not capture.
     if p.status!='paid':
         o=db.get(Offer,p.offer_id); data=paypal.get(p.order_id); cid=paypal.verify(data,p,o)
